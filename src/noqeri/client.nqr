@@ -1,4 +1,20 @@
 module web.client
+
 extern function domText(selector: string, value: string): bool
+extern function mediaReducedMotion(): bool
+extern function mediaFinePointer(): bool
+extern function viewportWidth(): f64
+extern function viewportHeight(): f64
+extern function scrollYPosition(): f64
+extern function motionNow(): f64
+extern function motionProfile(): string
+
 export function clientVersion(): string { return "1.0" }
 export function writeNoqeriBadge(): bool { return domText("[data-noqeri-client]", "Noqeri 1.0") }
+export function clientReducedMotion(): bool { return mediaReducedMotion() }
+export function clientFinePointer(): bool { return mediaFinePointer() }
+export function clientViewportWidth(): f64 { return viewportWidth() }
+export function clientViewportHeight(): f64 { return viewportHeight() }
+export function clientScrollY(): f64 { return scrollYPosition() }
+export function clientMotionNow(): f64 { return motionNow() }
+export function clientMotionProfile(): string { return motionProfile() }
