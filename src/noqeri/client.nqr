@@ -1,0 +1,4 @@
+module web.client
+extern function domText(selector: string, value: string): bool
+export function clientVersion(): string { return "1.0" }
+export function writeNoqeriBadge(): bool { return domText("[data-noqeri-client]", "Noqeri 1.0") }

@@ -1,0 +1,4 @@
+// Checked-in bootstrap artifact. CI and Docker regenerate this from client.nqr.
+export const domText=(selector,value)=>{const node=document.querySelector(selector);if(!node)return false;node.textContent=String(value);return true}
+export function clientVersion(){return '1.0'}
+export function writeNoqeriBadge(){return domText('[data-noqeri-client]','Noqeri 1.0')}

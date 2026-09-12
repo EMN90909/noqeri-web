@@ -1,25 +1,42 @@
 module web.api
 
-export function apiStatus(): string {
-    return "ok"
+extern function httpStatic(prefix: string, directory: string): bool
+extern function dbOpen(path: string): usize
+extern function dbExec(database: usize, script: string): string
+
+export function apiStatus(): string { return "ok" }
+export function apiLanguage(): string { return "1.0" }
+export function apiEdition(): string { return "2026" }
+export function apiCompiler(): string { return "1.0.0" }
+export function apiRegistry(): string { return "https://github.com/EMN90909/noqeri-registry" }
+export function apiSource(): string { return "Noqeri" }
+
+export function configureServer(): bool {
+    return httpStatic("/", "dist")
 }
 
-export function apiLanguage(): string {
-    return "1.5"
+export function serverCanHandle(method: string, path: string): bool {
+    return path == "/api/health" || path == "/api/meta" || path == "/api/db-demo"
 }
 
-export function apiEdition(): string {
-    return "2026"
+export function serverStatus(method: string, path: string): int {
+    if serverCanHandle(method, path) { return 200 }
+    return 404
 }
 
-export function apiCompiler(): string {
-    return "1.5.0"
+export function serverContentType(method: string, path: string): string {
+    if path == "/api/db-demo" { return "text/plain; charset=utf-8" }
+    return "application/json; charset=utf-8"
 }
 
-export function apiRegistry(): string {
-    return "https://github.com/EMN90909/noqeri-registry"
+export function databaseDemo(): string {
+    let database: usize = dbOpen("site-demo.nqdb")
+    return dbExec(database, "table health { key: text key, value: text required }; delete health; insert health { key: \"status\", value: \"ok\" }; select health where key = \"status\"")
 }
 
-export function apiSource(): string {
-    return "Noqeri"
+export function serverHandle(method: string, path: string): string {
+    if path == "/api/health" { return "{\"status\":\"ok\",\"language\":\"1.0\",\"source\":\"Noqeri\"}" }
+    if path == "/api/meta" { return "{\"language\":\"1.0\",\"edition\":\"2026\",\"compiler\":\"1.0.0\"}" }
+    if path == "/api/db-demo" { return databaseDemo() }
+    return "{\"error\":\"not_found\"}"
 }
