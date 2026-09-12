@@ -48,7 +48,7 @@ const server=createServer(async(req,res)=>{
   try{
     if(url.pathname==='/registry/index.json')return json(req,res,200,await registryIndex())
     const pkg=url.pathname.match(/^\/registry\/([a-z0-9-]+)\/([a-z0-9-]+)\/([0-9][a-z0-9.-]*)\/download\.nqpkg$/i)
-    if(pkg){const archive=await packageArchive(pkg[1],pkg[2],pkg[3]);return send(req,res,200,{'Content-Type':'application/octet-stream','Content-Disposition':`attachment; filename="${pkg[1]}-${pkg[2]}-${pkg[3]}.nqpkg"`,'Cache-Control':'public, max-age=300'},archive)}
+    if(pkg){const archive=await packageArchive(pkg[1],pkg[2],pkg[3]);return send(req,res,200,{'Content-Type':'application/vnd.noqeri.package+gzip','Content-Disposition':`attachment; filename="${pkg[1]}-${pkg[2]}-${pkg[3]}.nqpkg"`,'Cache-Control':'public, max-age=300'},archive)}
     const staticRoute=host.routes.get(`${method} ${url.pathname}`)||host.routes.get(`GET ${url.pathname}`);if(staticRoute)return send(req,res,staticRoute.status,{'Content-Type':staticRoute.type,'Cache-Control':'no-store'},staticRoute.body)
     if(api.serverCanHandle?.(method,url.pathname)){const status=api.serverStatus(method,url.pathname);const type=api.serverContentType(method,url.pathname);const body=api.serverHandle(method,url.pathname);return send(req,res,status,{'Content-Type':type,'Cache-Control':'no-store'},body)}
     return await staticFile(req,res,url.pathname)
