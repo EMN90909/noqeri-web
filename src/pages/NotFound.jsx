@@ -1,3 +1,4 @@
-import React from 'react'
-import { CTA, Page } from '../components.jsx'
-export function NotFound(){return <Page kicker="404" title="That module is not in the graph." intro="The route does not exist or has moved."><CTA to="/">Return to index</CTA></Page>}
+import React,{useState} from 'react'
+import {Link} from 'react-router-dom'
+const tokens=['import','route','.','missing','//','unresolved']
+export function NotFound(){const[order,setOrder]=useState([]);const done=order.length===tokens.length;function add(t){if(!order.includes(t))setOrder(v=>[...v,t])}return <section className="not-found"><small>ROUTE / UNRESOLVED</small><h1>404</h1><p>This page did not resolve to a Noqeri module.</p><div className="broken-code"><div>{order.join(' ')||'// tap tokens to recover a path'}</div><div>{tokens.map(t=><button disabled={order.includes(t)} onClick={()=>add(t)} key={t}>{t}</button>)}</div></div>{done&&<p className="recovered">Recovered a path. Try the manual.</p>}<div className="hero-actions"><Link className="cta" to="/">Return home <span>↘</span></Link><Link className="cta" to="/docs">Open docs <span>↘</span></Link></div></section>}

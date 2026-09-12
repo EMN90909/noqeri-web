@@ -1,14 +1,4 @@
-import React from 'react'
-import { NavLink } from 'react-router-dom'
-import { Card, Code, Page } from '../components.jsx'
-
-export function About(){return <Page kicker="11 / ABOUT" title="Small surface. Serious reach." intro="Noqeri is an independent language project focused on readable static typing, explicit low-level control, portable host boundaries and a toolchain that stays understandable.">
-  <section className="statement"><span>WHY</span><p>Systems capability should be available without turning ordinary application code into a ceremony.</p></section>
-  <section className="grid cols-3">
-    <Card index="01" title="Language">Familiar syntax, strict conversion rules, owned fixed arrays, borrowed slices, constrained generics and explicit systems operations.</Card>
-    <Card index="02" title="Toolchain">Compiler, formatter, LSP, package metadata, content-addressed locks, target adapters and reproducible tests live as one coherent project.</Card>
-    <Card index="03" title="Web">Noqeri can emit portable JavaScript modules for browser and hosted server adapters while retaining its native systems path.</Card>
-  </section>
-  <Code>{`function principle<T: Eq>(left: T, right: T): bool {\n    return left == right\n}`}</Code>
-  <section className="big-link"><NavLink className="cta" to="/docs/getting-started">Read the manual <span>↗</span></NavLink></section>
-</Page>}
+import React,{useState} from 'react'
+import {Page} from '../components.jsx'
+const principles=[['Keep the common path simple','Ordinary programs should read plainly.'],['Make power explicit','Systems capability should announce itself.'],['Prefer inspectable tools','Build steps and package identities should stay visible.'],['Respect platforms','Browser, server and native targets keep their real boundaries.'],['Build the ecosystem in layers','Language, packages, docs and community can mature without pretending to be one monolith.']]
+export function About(){const[a,setA]=useState(0);return <Page kicker="ABOUT / WHY" title="Noqeri is a small language with wide intent." intro="It is designed for readable programs, explicit systems work, portable web objects, deterministic packages and projects that should stay understandable."><section className="about-origin"><small>ORIGIN</small><p>Noqeri treats restraint as a feature: the language surface stays compact while libraries, hosts and packages carry platform-specific power.</p></section><section className="principles-list">{principles.map((p,i)=><button key={p[0]} onMouseEnter={()=>setA(i)} onFocus={()=>setA(i)} onClick={()=>setA(i)}><b>{String(i+1).padStart(2,'0')}</b><span>{p[0]}</span><em>{a===i?p[1]:'↘'}</em></button>)}</section><section className="about-timeline"><span><b>0.x</b> language + compiler foundations</span><i/><span><b>1.0</b> public contracts + deterministic package surfaces</span><i/><span><b>next</b> broaden tooling without hiding the model</span></section><div className="big-link"><a className="cta" href="/docs">Read the manual <span>↘</span></a></div><div className="notice">Made by Noethric · <a href="https://github.com/EMN90909/Noqeri">View GitHub</a> · <a href="/packages">Explore packages</a></div></Page>}

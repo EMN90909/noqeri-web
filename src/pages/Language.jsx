@@ -1,13 +1,5 @@
-import React from 'react'
-import { Card, Code, Grid, Page } from '../components.jsx'
-
-export function Language() {
-  return <Page kicker="02 / LANGUAGE" title="Familiar grammar. Deliberate semantics." intro="Noqeri borrows recognisable shapes from systems languages but keeps the contract small: declarations read left-to-right, unsafe power is visible, and implicit conversions are limited to provably safe cases.">
-    <Grid cols={2}>
-      <Card index="01" title="Values and types"><Code>{`let port: u16 = 8080\nlet count: u64 = port\nlet byte: u8 = count as u8`}</Code></Card>
-      <Card index="02" title="Borrowed slices"><Code>{`let values: [u32; 3] = [1 as u32, 2 as u32, 3 as u32]\nlet view: []u32 = slice(values)\nprint(len(view))`}</Code></Card>
-      <Card index="03" title="Status propagation"><Code>{`function load(): isize {\n    throw 3\n}\n\nfunction start(): isize {\n    let status = try load()\n    return status\n}`}</Code></Card>
-      <Card index="04" title="Systems work"><Code>{`let ptr: *u64 = &counter\natomic.store(ptr, 1)\nintrinsic("x86.pause")\nasm("nop")`}</Code></Card>
-    </Grid>
-  </Page>
-}
+import React,{useState} from 'react'
+import {motion} from 'motion/react'
+import {Page} from '../components.jsx'
+const features=[['Functions','Small readable units with explicit inputs and returns.','function greet(name: string): string {\n  return "hello " + name\n}'],['Records','Predictable data shapes for APIs, native boundaries and tools.','record User {\n  id: u64\n  name: string\n}'],['Modules','Organize projects without turning imports into a build-system puzzle.','module app.main\nimport web.http'],['Generics','Reuse code while keeping types visible.','function first<T>(items: []T): T {\n  return items[0]\n}'],['Systems','Pointers, atomics and explicit boundaries when you need them.','let ptr: *u64 = &counter\natomic.store(ptr, 1)'],['Web objects','Expose browser and server capabilities through Noqeri modules.','import web.dom\nlet root = dom.query("#app")']]
+export function Language(){const[a,setA]=useState(0);return <Page kicker="LANGUAGE / SPECIMEN" title="A compact language surface for wide targets." intro="Noqeri is designed around ordinary readable code, explicit low-level intent, portable modules and host-backed platform integration."><div className="syntax-specimen"><div className="syntax-tabs" role="tablist">{features.map((f,i)=><button key={f[0]} role="tab" aria-selected={a===i} onMouseEnter={()=>setA(i)} onFocus={()=>setA(i)} onClick={()=>setA(i)}>{String(i+1).padStart(2,'0')} <span>{f[0]}</span></button>)}</div><motion.div className="syntax-stage" key={a} initial={{opacity:0,y:8}} animate={{opacity:1,y:0}}><div><small>{features[a][0]}</small><h2>{features[a][1]}</h2></div><pre><code>{features[a][2]}</code></pre></motion.div></div><div className="compiler-rail" aria-label="Source to target diagram"><span>source</span><i/><span>type check</span><i/><span>NIR</span><i/><span>target</span></div><div className="syntax-tiles" aria-label="Syntax tokens">{['function','record','module','import','array','pointer'].map(x=><motion.button drag dragSnapToOrigin whileDrag={{scale:1.06}} key={x}>{x}</motion.button>)}</div></Page>}
