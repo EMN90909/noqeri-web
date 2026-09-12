@@ -4,6 +4,7 @@ const INDEX='https://raw.githubusercontent.com/EMN90909/noqeri-registry/main/reg
 const API='https://api.github.com/repos/EMN90909/noqeri-registry/contents/'
 const cache=new Map()
 const validPart=value=>/^[a-z0-9][a-z0-9-]*$/i.test(value)
+const validVersion=value=>/^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.test(value)
 const oct=(value,length)=>`${Math.max(0,value).toString(8)}`.padStart(length-1,'0')+'\0'
 
 function tarHeader(name,size){
@@ -42,7 +43,7 @@ export async function registryIndex(){
   const value=await getJson(INDEX);cache.set('index',{time:now,value});return value
 }
 export async function packageArchive(namespace,name,version){
-  if(![namespace,name,version].every(validPart))throw new Error('invalid package identity')
+  if(!validPart(namespace)||!validPart(name)||!validVersion(version))throw new Error('invalid package identity')
   const key=`${namespace}/${name}@${version}`,hit=cache.get(key);if(hit&&Date.now()-hit.time<300000)return hit.value
   const index=await registryIndex();const pkg=index.packages.find(p=>p.namespace===namespace&&p.name===name)
   const release=pkg?.versions?.find(v=>v.version===version&&!v.yanked);if(!release)throw new Error('package not found')
