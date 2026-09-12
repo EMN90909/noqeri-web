@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://noqeri.noethric.xyz/sitemap.xml

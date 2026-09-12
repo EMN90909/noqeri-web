@@ -1,0 +1,5 @@
+import React from 'react'
+import { Card, Grid, Page } from '../components.jsx'
+
+const docs = [['Syntax','Declarations, expressions, control flow and comments.'],['Types','Integers, pointers, arrays, slices, records and generic values.'],['Modules','Compilation units, imports and package boundaries.'],['NIR','Typed intermediate representation and optimization pipeline.'],['Targets','Architecture, ABI and object-format adapters without OS language semantics.'],['ABI','Versioned host capabilities for environment services.']]
+export function Docs() { return <Page kicker="03 / DOCUMENTATION" title="The language is only half the contract." intro="Noqeri documents syntax, semantics, compiler IR and host boundaries together so tooling does not have to reverse-engineer the compiler."><Grid cols={3}>{docs.map(([a,b],i)=><Card key={a} index={String(i+1).padStart(2,'0')} title={a}><p>{b}</p></Card>)}</Grid><div className="notice">Canonical compiler references currently live in the <a href="https://github.com/EMN90909/Noqeri/tree/main/Doc">compiler repository</a>. The web documentation layer will progressively mirror generated API references here.</div></Page> }

@@ -1,0 +1,4 @@
+import React from 'react'
+import { Card, Code, Grid, Page } from '../components.jsx'
+
+export function Packages() { return <Page kicker="04 / PACKAGES" title="Small packages. Reproducible inputs." intro="Packages use namespaced identities, immutable versions and SHA-256 verified deterministic artifacts. The lock file records exact resolved content rather than trusting a package name alone."><Grid cols={3}><Card index="01" title="noqeri/core"><p>Freestanding helpers with no filesystem, process or network assumptions.</p></Card><Card index="02" title="noqeri/std"><p>General-purpose modules layered over core and explicit environment capabilities.</p></Card><Card index="03" title="noqeri/test"><p>Testing helpers that remain ordinary Noqeri source.</p></Card></Grid><Code>{`dependencies {\n    core: "noqeri/core@^1.5"\n    std: "noqeri/std@^1.5"\n}`}</Code></Page> }

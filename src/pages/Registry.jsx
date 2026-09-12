@@ -1,0 +1,4 @@
+import React from 'react'
+import { Card, Code, Grid, Page } from '../components.jsx'
+
+export function Registry() { return <Page kicker="05 / REGISTRY" title="Package identity is a supply-chain boundary." intro="The reference registry keeps language semantics out of the network layer. Tooling speaks a versioned HTTP protocol; packages are deterministic archives with immutable version identities."><Grid cols={2}><Card index="GET" title="Read protocol"><Code>{`/v1/index\n/v1/search?q=math\n/v1/packages/noqeri/core\n/v1/packages/noqeri/core/1.5.0/download`}</Code></Card><Card index="SHA" title="Integrity"><p>Every generated <code>.nqpkg</code> archive is normalized and SHA-256 addressed before a client accepts it.</p></Card></Grid><div className="notice">Registry source: <a href="https://github.com/EMN90909/noqeri-registry">github.com/EMN90909/noqeri-registry</a></div></Page> }
