@@ -1,8 +1,12 @@
 import React,{useMemo,useState} from 'react'
 import { NavLink,useParams } from 'react-router-dom'
-import { docs,docGroups } from '../docsContentV1.js'
+import { docs as baseDocs,docGroups as baseDocGroups } from '../docsContentV1.js'
+import { addedDocs,addedDocGroups } from '../docsAddendum.js'
 import { Code } from '../components.jsx'
 import { ArticleProgress,Reveal } from '../motion/primitives.jsx'
+
+const docs=[...baseDocs,...addedDocs]
+const docGroups=[...baseDocGroups,...addedDocGroups]
 
 function DocsMenu({query,setQuery}){const visible=useMemo(()=>{const q=query.trim().toLowerCase();if(!q)return docs;return docs.filter(d=>`${d.title} ${d.summary} ${d.group}`.toLowerCase().includes(q))},[query]);return <aside className="docs-menu"><div className="docs-menu-head"><span>MANUAL / 1.0</span><b>{docs.length} TOPICS</b></div><label className="docs-search"><span>SEARCH</span><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="HTTP, .nqd, safety…"/></label>{docGroups.map(group=>{const items=visible.filter(d=>d.group===group);return items.length?<div className="docs-group" key={group}><h4>{group}</h4>{items.map(d=><NavLink key={d.slug} to={`/docs/${d.slug}`}>{d.title}</NavLink>)}</div>:null})}</aside>}
 function DocsIndex(){return <article className="docs-article docs-index"><Reveal className="doc-kicker" distance={6}>NOQERI 1.0 DOCUMENTATION</Reveal><Reveal as="h1" delay={.035} distance={18}>One manual from first program to web + data.</Reveal><Reveal as="p" className="doc-lead" delay={.07} distance={10}>The manual treats features as contracts, including their current limits. Start with ordinary language syntax, then move into systems, `.nqo` web objects, HTTP hosting, `.nqd` data and the package/security model.</Reveal><div className="docs-start-grid">{docs.slice(0,10).map((d,i)=><NavLink key={d.slug} to={`/docs/${d.slug}`}><small>{String(i+1).padStart(2,'0')}</small><strong>{d.title}</strong><span>{d.summary}</span></NavLink>)}</div><section className="doc-section"><h2>Documentation rule</h2><p>A package declaration, roadmap name or host contract is not documented as “working” unless the implementation path exists. Experimental providers are labelled as such; the manual does not inflate maturity ratings.</p></section></article>}
