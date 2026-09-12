@@ -26,6 +26,8 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: npm run build
       - run: node --check server.mjs
+      - run: node --check runtime/noqeri-host.mjs
+      - run: node --check runtime/registry-download.mjs
       - run: node --input-type=module --check < backend/api.generated.nqo
       - run: node --input-type=module --check < src/noqeri/client.generated.nqo
       - run: NOQERI_BIN=/tmp/Noqeri/build/noqeri npm run smoke
