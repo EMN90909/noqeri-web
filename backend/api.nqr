@@ -1,0 +1,25 @@
+module web.api
+
+export function apiStatus(): string {
+    return "ok"
+}
+
+export function apiLanguage(): string {
+    return "1.5"
+}
+
+export function apiEdition(): string {
+    return "2026"
+}
+
+export function apiCompiler(): string {
+    return "1.5.0"
+}
+
+export function apiRegistry(): string {
+    return "https://github.com/EMN90909/noqeri-registry"
+}
+
+export function apiSource(): string {
+    return "Noqeri"
+}

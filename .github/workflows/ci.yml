@@ -1,14 +1,11 @@
 name: web CI
-
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-
 permissions:
   contents: read
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,4 +16,7 @@ jobs:
           node-version: '22.x'
       - run: npm install --no-audit --no-fund
       - run: npm run build
+      - run: node --check server.mjs
+      - run: node --check backend/api.generated.mjs
+      - run: npm run smoke
       - run: docker build -t noqeri-web:test .
