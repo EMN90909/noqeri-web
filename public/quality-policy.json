@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "performance_claims": "evidence-required",
+  "package_levels": ["experimental", "preview", "stable", "core"],
+  "diagnostic_modes": ["check-memory", "race", "overflow"],
+  "benchmark_workloads": ["binary-trees", "json", "regex", "http-server", "filesystem", "database", "matrix", "allocation", "strings", "sorting", "startup", "compilation"],
+  "comparators": ["C", "C++", "Rust", "Zig", "Go"],
+  "rule": "Noqeri does not publish broad faster-than claims without a reproducible result bundle and methodology."
+}
