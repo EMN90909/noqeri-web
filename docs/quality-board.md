@@ -33,6 +33,8 @@ The reference execution pipeline has explicit `CheckBounds` and `CheckNonNull` N
 
 The safety checker enforces explicit `unsafe { ... }` boundaries for raw-pointer operations. The lifetime pass contains aggregate field-path tracking and interprocedural function summaries; these are implementation facts, not a claim that every possible borrow pattern across every backend is already proven complete.
 
+### Foundational structures
+
 The first foundational-structure tranche replaces placeholder-shaped modules with real caller-owned abstractions:
 
 - `std/bitset` — indexed bit mutation, scans, ranges, rank/select, set algebra, shifts and byte import/export;
@@ -41,7 +43,75 @@ The first foundational-structure tranche replaces placeholder-shaped modules wit
 - `std/heap` — generic min/max binary heap with build, push/pop, update/remove and validation;
 - `std/priority_queue` — stable generic priority queue with deterministic equal-priority ordering and priority updates.
 
-Behavioral import tests live with the compiler test suite. Their presence is evidence that the feature has a test contract; a release should only say `verified` after those tests have actually been executed for that release configuration.
+### Time modules
+
+The time tranche separates three concepts that used to be nearly identical placeholder files:
+
+- `std/duration` means **an amount of elapsed time**. It now has a canonical seconds/nanoseconds representation, normalization, comparison, saturating arithmetic, unit conversion, rounding, clamp/min/max and deadline helpers.
+- `std/calendar` means **civil dates**. It now covers Gregorian validity, leap years, day-of-year, ISO weekdays, month grids, business days, date/month/year movement and fiscal periods.
+- `std/clock` means **time of day**. It now covers validation, 12/24-hour helpers, millisecond conversion, arithmetic across midnight, overnight intervals, elapsed differences and rounding.
+
+The distinction is deliberately teachable: **duration = how long; calendar = which date; clock = what time of day.**
+
+### Data-integrity modules
+
+The former `std/crc` and `std/hash` placeholders no longer expose the same generic byte-sum helpers under different names.
+
+- `std/crc` now provides CRC32, CRC32C, CRC16-CCITT and CRC8, including incremental state and endian serialization helpers.
+- `std/hash` now provides deterministic non-cryptographic FNV-1a/FNV-1, DJB2, SDBM and polynomial hashes, plus incremental state, hash combination and bucket/distribution helpers.
+
+`std/hash` is explicitly non-cryptographic; cryptographic claims belong to `std/crypto`, not to fast map/cache hashing.
+
+## Test contracts added
+
+The compiler repository now contains imported behavior tests for the deeper tranches:
+
+- `tests/stdlib_structures.nqr` exercises the generic foundational structures;
+- `tests/time_modules.nqr` exercises negative-duration normalization, leap/calendar behavior and midnight-wrapping clock arithmetic;
+- `tests/data_integrity.nqr` uses known CRC/hash vectors, incremental state and serialization behavior;
+- `scripts/test_maturity.sh` checks and runs the time/data-integrity tests in the maturity gate and retains negative safety tests for pointer escape, dangling borrows, fixed-array bounds and provable null dereference.
+
+Their presence is a **test contract**. It is not equivalent to an executed result bundle for a release.
+
+## Standard-library maturity audit
+
+`Noqeri/scripts/stdlib-audit.mjs` turns placeholder debt into a repeatable report instead of a subjective file-size discussion.
+
+It records per module:
+
+- source bytes;
+- source and nonblank code lines;
+- exported functions;
+- records and private helpers;
+- loops/branches/imports;
+- maturity tier: `placeholder`, `developing` or `substantial`.
+
+Typical commands are:
+
+```sh
+node scripts/stdlib-audit.mjs
+node scripts/stdlib-audit.mjs --json
+node scripts/stdlib-audit.mjs --strict
+```
+
+The requested 30 KiB threshold is reported for transparency, but it is **not** used as proof of maturity. Comments, duplicated aliases and generated repetition never upgrade a module.
+
+## Evidence state for this tranche
+
+The source changes and test contracts above are committed to `main`. During the session that authored this tranche, the available execution environment could not resolve `github.com` for a local checkout, so the new test files were not executed locally in that environment.
+
+Therefore the correct state is:
+
+| Area | State | What can be said |
+|---|---|---|
+| compiler bounds/null/unsafe/overflow implementation | `implemented` | source behavior is reviewable |
+| aggregate/interprocedural borrow analysis | `implemented` + existing regression coverage | do not call it universally complete |
+| structures/time/CRC/hash modules | `implemented` | real APIs replaced placeholder shapes |
+| new time + data-integrity tests | `test-contract` | executable fixtures are committed and wired into maturity checks |
+| structure benchmark workloads | `unmeasured` | workloads exist; no speedup percentage is established |
+| cross-language performance | `unmeasured` unless a result bundle is attached | no “faster than Rust/Zig/C++” claim |
+
+A future release can promote `test-contract` to `verified` only after the relevant test command passes for a named commit/backend/target. Performance becomes `measured` only after raw samples and environment metadata are published.
 
 ## What is not yet a public claim
 
@@ -80,7 +150,7 @@ The status label prevents roadmap work, implementation work and measured guarant
 
 ## Kid-tester review: what still feels hard
 
-The beginner seat reviewed the current low-level collection direction as if learning Noqeri for the first time. The major friction points are:
+The beginner seat reviewed Noqeri as if learning it for the first time. The major friction points are:
 
 1. **Storage ownership appears too early.** A learner asking for a deque first meets backing pointers/capacity. Keep caller-owned storage for systems users, but documentation should show a small safe recipe before explaining representation.
 2. **`Copy`, `Eq` and `Ord` are useful but unexplained at first sight.** Getting-started examples should name what each constraint means in one sentence and defer monomorphisation details.
@@ -88,6 +158,7 @@ The beginner seat reviewed the current low-level collection direction as if lear
 4. **Safety modes are hard to discover by environment variable alone.** Docs/CLI help should give one memorable checked-development recipe and explain production trade-offs.
 5. **Advanced words arrive before the mental model.** Terms such as borrow, aggregate, ABI and monomorphisation belong after examples that first answer “what value do I have, what can I do to it, what mistake is prevented?”
 6. **Placeholder modules trained the wrong expectation.** Four identical helpers named after unrelated domains made modules look complete when they were not. Public docs should distinguish `experimental`, `preview`, `stable` and `core` clearly.
+7. **Names must teach different concepts.** `duration`, `calendar` and `clock` should never be interchangeable aliases; their new APIs intentionally make the conceptual boundary visible.
 
 ## Design vote for teachability
 
