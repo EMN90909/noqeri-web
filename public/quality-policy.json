@@ -1,9 +1,20 @@
 {
-  "schema": 1,
+  "schema": 2,
   "performance_claims": "evidence-required",
   "package_levels": ["experimental", "preview", "stable", "core"],
+  "evidence_states": ["planned", "implemented", "test-contract", "verified", "measured", "regression-gated"],
+  "safety_guarantees": ["dynamic-bounds-checks", "runtime-null-checks", "explicit-unsafe-blocks", "aggregate-interprocedural-borrow-analysis", "checked-overflow-mode"],
   "diagnostic_modes": ["check-memory", "race", "overflow"],
-  "benchmark_workloads": ["binary-trees", "json", "regex", "http-server", "filesystem", "database", "matrix", "allocation", "strings", "sorting", "startup", "compilation"],
+  "foundational_module_gate": {
+    "require_real_state_or_algorithm": true,
+    "require_positive_tests": true,
+    "require_failure_tests": true,
+    "require_beginner_example": true,
+    "require_safety_notes_when_applicable": true,
+    "require_benchmark_fixture_when_performance_sensitive": true,
+    "source_size_is_proof": false
+  },
+  "benchmark_workloads": ["binary-trees", "json", "regex", "http-server", "filesystem", "database", "matrix", "allocation", "strings", "sorting", "startup", "compilation", "bitset", "bloom", "deque", "heap", "priority-queue"],
   "comparators": ["C", "C++", "Rust", "Zig", "Go"],
-  "rule": "Noqeri does not publish broad faster-than claims without a reproducible result bundle and methodology."
+  "rule": "Noqeri does not publish broad safety or faster-than claims without a reproducible result bundle and methodology."
 }
