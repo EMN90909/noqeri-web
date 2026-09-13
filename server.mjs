@@ -6,6 +6,7 @@ import { gzipSync } from 'node:zlib'
 import { createNoqeriHost } from './runtime/noqeri-host.mjs'
 import { registryIndex, packageArchive } from './runtime/registry-download.mjs'
 import { shellInstaller, powershellInstaller, sourceInfo } from './runtime/source-install.mjs'
+import { registryAdvisories, compatibilityPolicy, compatibilityResults, qualityEvidence } from './runtime/quality-evidence.mjs'
 
 const base=fileURLToPath(new URL('.',import.meta.url))
 const root=join(base,'dist')
@@ -54,6 +55,13 @@ const server=createServer(async(req,res)=>{
     if(url.pathname==='/get/noqeri.ps1')return send(req,res,200,{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'public, max-age=300'},powershellInstaller(origin,url.searchParams.get('ref')||'main'))
     if(url.pathname==='/source/noqeri')return json(req,res,200,sourceInfo(origin,url.searchParams.get('ref')||'main'))
     if(url.pathname==='/registry/index.json')return json(req,res,200,await registryIndex())
+    if(url.pathname==='/registry/advisories/index.json')return json(req,res,200,await registryAdvisories())
+    if(url.pathname==='/registry/compatibility/releases.json')return json(req,res,200,await compatibilityPolicy())
+    if(url.pathname==='/registry/compatibility/results.json'){
+      const results=await compatibilityResults()
+      return results?json(req,res,200,results):json(req,res,404,{schema:1,status:'not_published',message:'No executed compatibility result bundle is published yet.'})
+    }
+    if(url.pathname==='/quality/evidence.json')return json(req,res,200,await qualityEvidence())
     const pkg=url.pathname.match(/^\/registry\/([a-z0-9-]+)\/([a-z0-9-]+)\/([0-9][a-z0-9.-]*)\/download\.nqpkg$/i)
     if(pkg){const archive=await packageArchive(pkg[1],pkg[2],pkg[3]);return send(req,res,200,{'Content-Type':'application/vnd.noqeri.package+gzip','Content-Disposition':`attachment; filename="${pkg[1]}-${pkg[2]}-${pkg[3]}.nqpkg"`,'Cache-Control':'public, max-age=300'},archive)}
     const staticRoute=host.routes.get(`${method} ${url.pathname}`)||host.routes.get(`GET ${url.pathname}`);if(staticRoute)return send(req,res,staticRoute.status,{'Content-Type':staticRoute.type,'Cache-Control':'no-store'},staticRoute.body)
