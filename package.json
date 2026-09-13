@@ -1,5 +1,5 @@
 {
   "name":"noqeri-web","private":true,"version":"1.0.0","type":"module",
-  "scripts":{"dev":"vite --host 0.0.0.0","build":"vite build","preview":"vite preview --host 0.0.0.0","start":"node server.mjs","check":"vite build","smoke":"node scripts/smoke.mjs"},
+  "scripts":{"dev":"vite --host 0.0.0.0","build":"vite build","preview":"vite preview --host 0.0.0.0","start":"node server.mjs","check":"vite build","smoke":"node scripts/smoke.mjs","test:source":"node scripts/source-install.test.mjs"},
   "dependencies":{"@vitejs/plugin-react":"4.3.4","vite":"5.4.14","react":"18.3.1","react-dom":"18.3.1","react-router-dom":"6.28.1","motion":"13.2.0"},"devDependencies":{}
 }

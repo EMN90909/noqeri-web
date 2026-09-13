@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { gzipSync } from 'node:zlib'
 import { createNoqeriHost } from './runtime/noqeri-host.mjs'
 import { registryIndex, packageArchive } from './runtime/registry-download.mjs'
+import { shellInstaller, powershellInstaller, sourceInfo } from './runtime/source-install.mjs'
 
 const base=fileURLToPath(new URL('.',import.meta.url))
 const root=join(base,'dist')
@@ -45,7 +46,13 @@ api.configureServer?.()
 const server=createServer(async(req,res)=>{
   const method=req.method||'GET';if(method!=='GET'&&method!=='HEAD')return json(req,res,405,{error:'method_not_allowed'})
   let url;try{url=new URL(req.url||'/',`http://${req.headers.host||'localhost'}`)}catch{return json(req,res,400,{error:'bad_url'})}
+  const forwarded=(req.headers['x-forwarded-proto']||'').split(',')[0].trim()
+  const protocol=forwarded==='https'?'https':'http'
+  const origin=`${protocol}://${req.headers.host||'localhost'}`
   try{
+    if(url.pathname==='/get/noqeri')return send(req,res,200,{'Content-Type':'text/x-shellscript; charset=utf-8','Cache-Control':'public, max-age=300'},shellInstaller(origin,url.searchParams.get('ref')||'main'))
+    if(url.pathname==='/get/noqeri.ps1')return send(req,res,200,{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'public, max-age=300'},powershellInstaller(origin,url.searchParams.get('ref')||'main'))
+    if(url.pathname==='/source/noqeri')return json(req,res,200,sourceInfo(origin,url.searchParams.get('ref')||'main'))
     if(url.pathname==='/registry/index.json')return json(req,res,200,await registryIndex())
     const pkg=url.pathname.match(/^\/registry\/([a-z0-9-]+)\/([a-z0-9-]+)\/([0-9][a-z0-9.-]*)\/download\.nqpkg$/i)
     if(pkg){const archive=await packageArchive(pkg[1],pkg[2],pkg[3]);return send(req,res,200,{'Content-Type':'application/vnd.noqeri.package+gzip','Content-Disposition':`attachment; filename="${pkg[1]}-${pkg[2]}-${pkg[3]}.nqpkg"`,'Cache-Control':'public, max-age=300'},archive)}
