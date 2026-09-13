@@ -6,6 +6,7 @@ const MAX_JSON_BYTES=2*1024*1024
 
 const sources=Object.freeze({
   advisories:`${RAW_REGISTRY}/advisories/index.json`,
+  package_quality:`${RAW_REGISTRY}/registry/quality.json`,
   compatibility_policy:`${RAW_REGISTRY}/compatibility/releases.json`,
   compatibility_results:`${RAW_REGISTRY}/compatibility/results.json`,
   benchmark_suite:`${RAW_NOQERI}/Benchmarks/suite.json`,
@@ -29,6 +30,7 @@ async function fixedJson(key,url,{optional=false}={}){
 
 export function qualityEvidenceSources(){return sources}
 export async function registryAdvisories(){return fixedJson('advisories',sources.advisories)}
+export async function packageQuality(){return fixedJson('package-quality',sources.package_quality)}
 export async function compatibilityPolicy(){return fixedJson('compatibility-policy',sources.compatibility_policy)}
 export async function compatibilityResults(){return fixedJson('compatibility-results',sources.compatibility_results,{optional:true})}
 export async function benchmarkSuite(){return fixedJson('benchmark-suite',sources.benchmark_suite)}
@@ -42,25 +44,31 @@ function compatibilityState(results){
 }
 function performanceState(results){
   if(!results)return 'unmeasured'
-  const state=String(results.evidence_state||results.state||'published')
-  return state
+  return String(results.evidence_state||results.state||'published')
 }
 
 export async function qualityEvidence(){
-  const [advisories,compatibility,compatResults,suite,perfResults]=await Promise.all([
-    registryAdvisories(),compatibilityPolicy(),compatibilityResults(),benchmarkSuite(),benchmarkResults()
+  const [advisories,packageLevels,compatibility,compatResults,suite,perfResults]=await Promise.all([
+    registryAdvisories(),packageQuality(),compatibilityPolicy(),compatibilityResults(),benchmarkSuite(),benchmarkResults()
   ])
   const perfState=performanceState(perfResults)
   const claimStates=new Set(['measured','regression-gated'])
   return {
     schema:1,
     generated_at:new Date().toISOString(),
-    policy:'Evidence is configuration-specific. Missing measurements are never converted into performance claims.',
+    policy:'Evidence is configuration-specific. Missing measurements are never converted into performance or maturity claims.',
     sources,
     security:{
       evidence_state:'implemented',
       advisory_count:Array.isArray(advisories?.advisories)?advisories.advisories.length:0,
       feed:advisories
+    },
+    packages:{
+      evidence_state:'declared',
+      default_level:packageLevels?.default_level||'experimental',
+      levels:packageLevels?.levels||['experimental','preview','stable','core'],
+      declarations:packageLevels,
+      note:'A missing package-specific override resolves to the conservative published default; it is never inferred as stable.'
     },
     compatibility:{
       evidence_state:compatibilityState(compatResults),

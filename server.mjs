@@ -6,7 +6,7 @@ import { gzipSync } from 'node:zlib'
 import { createNoqeriHost } from './runtime/noqeri-host.mjs'
 import { registryIndex, packageArchive } from './runtime/registry-download.mjs'
 import { shellInstaller, powershellInstaller, sourceInfo } from './runtime/source-install.mjs'
-import { registryAdvisories, compatibilityPolicy, compatibilityResults, qualityEvidence } from './runtime/quality-evidence.mjs'
+import { registryAdvisories, packageQuality, compatibilityPolicy, compatibilityResults, qualityEvidence } from './runtime/quality-evidence.mjs'
 
 const base=fileURLToPath(new URL('.',import.meta.url))
 const root=join(base,'dist')
@@ -56,6 +56,7 @@ const server=createServer(async(req,res)=>{
     if(url.pathname==='/source/noqeri')return json(req,res,200,sourceInfo(origin,url.searchParams.get('ref')||'main'))
     if(url.pathname==='/registry/index.json')return json(req,res,200,await registryIndex())
     if(url.pathname==='/registry/advisories/index.json')return json(req,res,200,await registryAdvisories())
+    if(url.pathname==='/registry/quality.json')return json(req,res,200,await packageQuality())
     if(url.pathname==='/registry/compatibility/releases.json')return json(req,res,200,await compatibilityPolicy())
     if(url.pathname==='/registry/compatibility/results.json'){
       const results=await compatibilityResults()
