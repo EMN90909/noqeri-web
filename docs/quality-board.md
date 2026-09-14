@@ -1,197 +1,162 @@
 # Noqeri Quality Board
 
-The Noqeri website must describe the language at the level that the compiler and test suite can actually prove.
+The website must describe Noqeri at the level the compiler, libraries and tests can actually prove. Source size, filenames and benchmark fixtures are not substitutes for behavior.
 
-## Board
+## Board roles
 
-The ecosystem uses six review seats for language-facing releases:
+1. **Planning** — find language/library gaps and choose leverage rather than cosmetic breadth.
+2. **Kid tester** — judge whether the first example and error make sense without compiler-internals knowledge.
+3. **Design** — own syntax, naming, diagnostics and the safe/advanced boundary.
+4. **Development** — implement compiler semantics and real library behavior.
+5. **Testing** — own positive, negative, safety, portability and performance evidence.
+6. **Marketing** — publish only claims supported by the current evidence state.
 
-1. **Planning** — scans compiler/library gaps, checks external language/tooling practice and proposes priorities.
-2. **Kid tester** — tries to learn the feature from its name, first example and error messages without relying on compiler-internals knowledge.
-3. **Design** — reviews syntax, naming, diagnostics and documentation hierarchy.
-4. **Development** — implements semantics and library behaviour.
-5. **Testing** — validates success paths, failures, safety, targets and benchmarks.
-6. **Marketing** — turns only verified results into public claims.
+## September 2026 design rules
 
-A feature can be technically clever and still lose the vote when the normal path is difficult to teach.
+- ordinary application syntax stays small;
+- advanced systems features remain available but are not prerequisites for beginner work;
+- dynamic safe indexing stays checked;
+- raw operations that bypass normal guarantees require explicit `unsafe { ... }` boundaries;
+- runtime bounds/null behavior is represented explicitly in compiler IR;
+- stdlib/package maturity means coherent state/algorithms + tests + examples, not a 30 KB quota;
+- performance claims require reproducible samples and environment metadata;
+- a small syntax feature is acceptable when it removes frequent ceremony and desugars to the existing core rather than creating a parallel semantic model.
 
-## September 2026 vote
+## Language simplicity: `repeat`
 
-The board approved these principles:
+The beginner-facing counted loop is now:
 
-- ordinary arrays and slices use ordinary indexing syntax and remain checked;
-- runtime bounds/null checks are explicit compiler IR operations rather than hidden backend accidents;
-- checked integer-overflow execution is an opt-in diagnostic mode while default integer execution remains defined;
-- operations that bypass ordinary memory guarantees require explicit `unsafe { ... }` boundaries;
-- aggregate/field-sensitive and interprocedural lifetime analysis is part of the compiler safety model and must be regression-tested before stronger public claims are made;
-- standard-library maturity is measured by coherent APIs, tests and examples, not by artificially forcing each source file over a byte threshold;
-- performance claims require reproducible benchmark metadata and an explicit evidence state.
-
-## What is implemented now
-
-The reference execution pipeline has explicit `CheckBounds` and `CheckNonNull` NIR operations. Slice/fixed-bound indexing and raw dereference paths lower through these checks. The reference interpreter supports `NOQERI_CHECKED_OVERFLOW=1` for trapping integer overflow.
-
-The safety checker enforces explicit `unsafe { ... }` boundaries for raw-pointer operations. The lifetime pass contains aggregate field-path tracking and interprocedural function summaries; these are implementation facts, not a claim that every possible borrow pattern across every backend is already proven complete.
-
-### Foundational structures
-
-The first foundational-structure tranche replaces placeholder-shaped modules with real caller-owned abstractions:
-
-- `std/bitset` — indexed bit mutation, scans, ranges, rank/select, set algebra, shifts and byte import/export;
-- `std/bloom` — configurable Bloom filter with byte/u64 insertion/query, saturation/copy helpers and deterministic hashing;
-- `std/deque` — generic fixed-capacity ring deque with front/back operations, rotations, removal and copying;
-- `std/heap` — generic min/max binary heap with build, push/pop, update/remove and validation;
-- `std/priority_queue` — stable generic priority queue with deterministic equal-priority ordering and priority updates.
-
-### Time modules
-
-The time tranche separates three concepts that used to be nearly identical placeholder files:
-
-- `std/duration` means **an amount of elapsed time**. It now has a canonical seconds/nanoseconds representation, normalization, comparison, saturating arithmetic, unit conversion, rounding, clamp/min/max and deadline helpers.
-- `std/calendar` means **civil dates**. It now covers Gregorian validity, leap years, day-of-year, ISO weekdays, month grids, business days, date/month/year movement and fiscal periods.
-- `std/clock` means **time of day**. It now covers validation, 12/24-hour helpers, millisecond conversion, arithmetic across midnight, overnight intervals, elapsed differences and rounding.
-
-The distinction is deliberately teachable: **duration = how long; calendar = which date; clock = what time of day.**
-
-### Data-integrity modules
-
-The former `std/crc` and `std/hash` placeholders no longer expose the same generic byte-sum helpers under different names.
-
-- `std/crc` now provides CRC32, CRC32C, CRC16-CCITT and CRC8, including incremental state and endian serialization helpers.
-- `std/hash` now provides deterministic non-cryptographic FNV-1a/FNV-1, DJB2, SDBM and polynomial hashes, plus incremental state, hash combination and bucket/distribution helpers.
-
-`std/hash` is explicitly non-cryptographic; cryptographic claims belong to `std/crypto`, not to fast map/cache hashing.
-
-## Test contracts added
-
-The compiler repository now contains imported behavior tests for the deeper tranches:
-
-- `tests/stdlib_structures.nqr` exercises the generic foundational structures;
-- `tests/time_modules.nqr` exercises negative-duration normalization, leap/calendar behavior and midnight-wrapping clock arithmetic;
-- `tests/data_integrity.nqr` uses known CRC/hash vectors, incremental state and serialization behavior;
-- `scripts/test_maturity.sh` checks and runs the time/data-integrity tests in the maturity gate and retains negative safety tests for pointer escape, dangling borrows, fixed-array bounds and provable null dereference.
-
-Their presence is a **test contract**. It is not equivalent to an executed result bundle for a release.
-
-## Standard-library maturity audit
-
-`Noqeri/scripts/stdlib-audit.mjs` turns placeholder debt into a repeatable report instead of a subjective file-size discussion.
-
-It records per module:
-
-- source bytes;
-- source and nonblank code lines;
-- exported functions;
-- records and private helpers;
-- loops/branches/imports;
-- maturity tier: `placeholder`, `developing` or `substantial`.
-
-Typical commands are:
-
-```sh
-node scripts/stdlib-audit.mjs
-node scripts/stdlib-audit.mjs --json
-node scripts/stdlib-audit.mjs --strict
+```nqr
+let total = 0
+repeat 4 {
+    total = total + 3
+}
 ```
 
-The requested 30 KiB threshold is reported for transparency, but it is **not** used as proof of maturity. Comments, duplicated aliases and generated repetition never upgrade a module.
+Use `repeat` when the count is the idea; use `while` when a condition is the idea. The parser evaluates the count once, converts it to the ordinary `int` loop count, creates compiler-private index/limit bindings and lowers the construct to the existing `while` AST. Zero/negative counts execute zero times. There is no `repeat` NIR instruction or separate runtime.
 
-## Evidence state for this tranche
+This retains all existing systems/control-flow capability while making the most common beginner counted-loop task require less ceremony.
 
-The source changes and test contracts above are committed to `main`. During the session that authored this tranche, the available execution environment could not resolve `github.com` for a local checkout, so the new test files were not executed locally in that environment.
+### Local evidence for `repeat`
 
-Therefore the correct state is:
+The modified C++ lexer/parser was reconstructed in the local execution environment, compiled with `g++ -std=c++17 -Wall -Wextra -Wpedantic`, and the focused executable was run locally. It verified keyword lexing plus AST desugaring for positive and negative counts. This is **local frontend verification**.
 
-| Area | State | What can be said |
-|---|---|---|
-| compiler bounds/null/unsafe/overflow implementation | `implemented` | source behavior is reviewable |
-| aggregate/interprocedural borrow analysis | `implemented` + existing regression coverage | do not call it universally complete |
-| structures/time/CRC/hash modules | `implemented` | real APIs replaced placeholder shapes |
-| new time + data-integrity tests | `test-contract` | executable fixtures are committed and wired into maturity checks |
-| structure benchmark workloads | `unmeasured` | workloads exist; no speedup percentage is established |
-| cross-language performance | `unmeasured` unless a result bundle is attached | no “faster than Rust/Zig/C++” claim |
+`tests/repeat_loop.nqr` is also checked in and wired into `scripts/test_maturity.sh`. Because the environment cannot obtain a normal full repository checkout from `github.com`, the full Noqeri compiler/runtime maturity suite has not been executed here. The runtime fixture therefore remains a **test contract** until a complete local release build runs it.
 
-A future release can promote `test-contract` to `verified` only after the relevant test command passes for a named commit/backend/target. Performance becomes `measured` only after raw samples and environment metadata are published.
+## Safety implementation
 
-## What is not yet a public claim
+The reference pipeline contains explicit bounds and non-null checks. The safety gate separately covers:
 
-Do not describe the project as having “full Rust-class borrow safety”, “zero-cost checks”, “all standard-library modules mature”, or complete safety across every backend until the corresponding release gates pass.
+- dynamic fixed-array/slice out-of-bounds runtime failure;
+- null raw-pointer access failure;
+- raw pointer indexing rejected outside `unsafe`;
+- checked integer-overflow mode;
+- aggregate field borrow escape;
+- interprocedural borrow escape;
+- checked indexing in the web backend.
 
-Do not turn source size into a marketing metric. A 30 KB file can still be filler; a smaller module can be complete for a narrow domain. The public claim is capability + tests + compatibility + measured evidence, not line count.
+The lifetime pass includes aggregate field-path tracking and interprocedural summaries. This supports strong concrete safety statements, but it is still not a license to claim complete Rust-equivalent safety across every aliasing pattern/backend.
+
+## Real standard-library tranches
+
+### Structures
+
+- `std/bitset` — bit mutation/scans/ranges/rank/select/set algebra/shifts/import/export;
+- `std/bloom` — configurable Bloom filter with deterministic hashing and saturation/copy helpers;
+- `std/deque` — generic fixed-capacity ring deque;
+- `std/heap` — generic min/max binary heap;
+- `std/priority_queue` — stable generic priority queue;
+- `std/ring` — circular overwrite/non-overwrite storage;
+- `std/pool` — caller-owned reusable slots with generation-safe handles;
+- `std/cache` — fixed-capacity LRU behavior.
+
+### Time
+
+- `std/duration` — elapsed amounts, normalization/arithmetic/conversion/rounding;
+- `std/calendar` — Gregorian civil dates, weekdays, business days, date/month/year movement;
+- `std/clock` — time-of-day arithmetic and wraparound.
+
+Mental model: **duration = how long; calendar = which date; clock = what time of day.**
+
+### Data integrity + interchange
+
+- `std/crc` — CRC32, CRC32C, CRC16-CCITT, CRC8 and incremental state;
+- `std/hash` — deterministic non-cryptographic FNV/DJB2/SDBM/polynomial families;
+- `std/endian` — bounded fixed-width byte-order codecs/cursors;
+- `std/varint` — base-128 integers, canonical checks and ZigZag signed mapping;
+- `std/encoding` — ASCII/UTF-8/UTF-16 detection/validation/transcoding.
+
+`std/hash` is explicitly non-cryptographic.
+
+### State, traversal and parsing foundations
+
+The former placeholder-shaped modules are now distinct abstractions instead of copies of four generic helpers:
+
+- `std/channel` — bounded non-blocking mailbox;
+- `std/event` — manual/auto-reset signal with generation/counters;
+- `std/future<T>` — pending/ready/failed/cancelled completion value;
+- `std/iterator<T>` — bidirectional cursor over caller-owned contiguous storage;
+- `std/metrics` — counter, gauge, running stats and histogram;
+- `std/numeric` — aggregate/integer helpers, GCD/LCM/power/search/prefix/difference/checked arithmetic;
+- `std/lexer` — allocation-free span tokenizer with identifiers/numbers/strings/comments/punctuation;
+- `std/parser` — grammar-neutral token cursor, checkpoints/recovery and primitive literal parsing.
+
+`tests/stdlib_foundations2.nqr` exercises multi-operation behavior across these modules and is part of the maturity gate.
+
+## Registry packages deepened
+
+Three portable packages were upgraded from tiny validation surfaces to useful codecs/parsers:
+
+- `noqeri/base64` — standard Base64 and Base64URL encoding/decoding, padded/unpadded URL output, validation and sizing;
+- `noqeri/hex` — byte encode/decode plus `u64` parse/format helpers;
+- `noqeri/csv` — quoted-field scanning, custom delimiters, escape/unescape and row composition without hidden allocation.
+
+Each package now has a real example, round-trip/malformed-input tests and README documentation matching the implementation. They should not be called release-verified until those tests execute with the named release compiler/target.
+
+## Standard-library/package auditors
+
+`Noqeri/scripts/stdlib-audit.mjs` reports bytes, nonblank code lines, exports, records/private helpers, control-flow signals and a maturity tier (`placeholder`, `developing`, `substantial`). `--strict` can fail on remaining placeholder-shaped modules.
+
+`noqeri-registry/tools/package-depth-audit.mjs` performs the analogous registry scan. These tools make shallow debt visible without turning byte count into a target that rewards filler.
 
 ## Evidence states
 
-Website feature/performance cards use these states:
-
 - `planned` — accepted direction, no implementation claim;
-- `implemented` — source implementation exists and is reviewable;
-- `test-contract` — executable positive/negative tests exist but no result bundle is attached for the current release environment;
-- `verified` — the relevant test suite passed for the stated commit/backend/target/mode;
-- `measured` — benchmark samples and environment metadata are published;
-- `regression-gated` — a comparable baseline and threshold are automatically enforced.
+- `implemented` — reviewable source exists;
+- `test-contract` — executable positive/negative tests exist but no release result bundle is attached;
+- `verified` — named tests passed for a stated commit/backend/target/mode;
+- `measured` — raw benchmark samples + environment metadata are published;
+- `regression-gated` — a comparable baseline and automatic threshold are enforced.
 
-Never promote `implemented` or `test-contract` to `verified` simply because a source file or test fixture exists.
+Never promote `implemented` or `test-contract` to `verified` because a file exists.
 
-## Evidence cards for the website
+### Current evidence summary
 
-When the site presents a safety or performance card it should include:
+| Area | State | Meaning |
+|---|---|---|
+| `repeat` lexer/parser/desugaring | locally frontend-verified | focused C++ frontend build/run passed |
+| `repeat` Noqeri runtime fixture | test-contract | wired into maturity gate; full local compiler suite not run in this environment |
+| new stdlib modules | implemented + test-contract | substantive APIs and imported behavior tests exist |
+| Base64/Hex/CSV registry packages | implemented + test-contract | real codecs/parsers/examples/tests exist |
+| foundational/storage benchmark fixtures | unmeasured | workload exists; no performance claim |
+| universal safety/performance superiority | not established | requires broader release evidence |
 
-- feature or benchmark name;
-- commit SHA;
-- backend (`interpreter`, `native`, `web`);
-- target OS/architecture;
-- safety/overflow mode;
-- input/sample count;
-- measured median and tail statistic for performance, when measured;
-- link to the exact benchmark/test source;
-- status from the evidence-state list above.
+## What must not be marketed yet
 
-The status label prevents roadmap work, implementation work and measured guarantees from visually blending together.
+Do not claim “full Rust-class borrow safety”, “memory-safe on every backend”, “zero-cost checks”, “all stdlib modules mature”, “every module is 30 KB”, or “faster than C/C++/Rust/Zig/Go” without the corresponding named release evidence.
 
-## Kid-tester review: what still feels hard
+A 30 KB file can be filler. A smaller complete algorithm can be mature. Capability + failure behavior + tests + compatibility + measured evidence is the product claim.
 
-The beginner seat reviewed Noqeri as if learning it for the first time. The major friction points are:
+## Beginner/teachability rule
 
-1. **Storage ownership appears too early.** A learner asking for a deque first meets backing pointers/capacity. Keep caller-owned storage for systems users, but documentation should show a small safe recipe before explaining representation.
-2. **`Copy`, `Eq` and `Ord` are useful but unexplained at first sight.** Getting-started examples should name what each constraint means in one sentence and defer monomorphisation details.
-3. **Boolean failure is simple but sometimes mysterious.** `false` is good for low-level/freestanding code, while beginner/application docs need a path toward descriptive `Result`-style errors for operations where the reason matters.
-4. **Safety modes are hard to discover by environment variable alone.** Docs/CLI help should give one memorable checked-development recipe and explain production trade-offs.
-5. **Advanced words arrive before the mental model.** Terms such as borrow, aggregate, ABI and monomorphisation belong after examples that first answer “what value do I have, what can I do to it, what mistake is prevented?”
-6. **Placeholder modules trained the wrong expectation.** Four identical helpers named after unrelated domains made modules look complete when they were not. Public docs should distinguish `experimental`, `preview`, `stable` and `core` clearly.
-7. **Names must teach different concepts.** `duration`, `calendar` and `clock` should never be interchangeable aliases; their new APIs intentionally make the conceptual boundary visible.
-
-## Design vote for teachability
-
-Normal APIs should prefer short verbs (`push`, `pop`, `set`, `get`, `clear`) and predictable failure semantics. Advanced variants can expose storage, pointer and performance controls, but should not be the first thing a beginner must understand.
-
-A teaching example should fit this order:
+Teach in this order:
 
 1. create a value;
-2. perform one obvious operation;
+2. do one obvious operation;
 3. read the result;
-4. show one safe failure;
-5. only then explain capacity, storage layout, unsafe escape hatches or compiler internals.
+4. show one safe mistake;
+5. then explain storage/capacity/unsafe/compiler internals.
 
-## Marketing vote
+The first course sequence is now: print → variables → decisions → `repeat` → `while` → functions → records → collections → files/data formats → HTTP → database → concurrency. Pointers, `unsafe`, atomics, FFI, native layout and assembly remain available in the advanced track.
 
-Market the evidence, not aspiration. Useful claims include “dynamic indexing is checked in the reference execution pipeline” or “this release contains behavioral tests for the foundational structures.” Avoid “memory-safe everywhere”, “zero-cost”, “30 KB modules”, “faster than Rust/Zig/C++”, or similar statements unless a release-specific evidence bundle supports them.
-
-## Testing vote
-
-A foundational feature is not done when its source gets longer. The acceptance sequence is:
-
-`implementation -> imported behavior tests -> failure tests -> safety-mode tests -> target compatibility -> benchmark fixture -> measured release evidence`
-
-The repository may move through these stages incrementally; the website must show the actual stage.
-
-## Teachability test
-
-Before publishing a language example, ask a new learner to answer:
-
-- What value is being created?
-- What operation happens next?
-- What mistake is the example protecting me from?
-- What does the error tell me to change?
-- Can I edit one value and predict what happens?
-
-If those questions require explaining NIR, borrow-analysis internals or ABI machinery first, the example belongs in advanced documentation rather than the main getting-started path.
+When comparing ease-of-learning with Go/Python/Lua/JavaScript, publish task-based usability evidence rather than claiming the ranking from aesthetics alone.
