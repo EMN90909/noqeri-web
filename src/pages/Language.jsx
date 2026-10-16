@@ -9,7 +9,7 @@ const features=[
   ['Modules','Import sibling source files using a quoted relative path.','module app.main\nimport "./math.nqr"'],
   ['Generics','Reuse functions while keeping type parameters visible.','function identity<T>(value: T): T {\n  return value\n}'],
   ['Systems','Make atomic operations and raw-memory intent explicit.','let counter: u64 = 0 as u64\nlet ptr: *u64 = &counter\natomic.store(ptr, 1 as u64)\nlet current: u64 = atomic.load(ptr)'],
-  ['Host ABI','Keep platform services behind explicit host functions.','extern function domText(selector: string, value: string): bool\n\nexport function writeBadge(): bool {\n  return domText("[data-noqeri-client]", "Noqeri 1.0")\n}']
+  ['Host ABI','Keep platform services behind explicit host functions.','extern function domText(selector: string, value: string): bool\n\nexport function writeBadge(): bool {\n  return domText("[data-noqeri-client]", "Noqeri 1.4")\n}']
 ]
 
 export function Language(){
