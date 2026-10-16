@@ -20,7 +20,7 @@ const exports=[
 
 assert.match(source,/clientVersion\(\): string \{ return "1\.4" \}/)
 assert.match(source,/domText\("\[data-noqeri-client\]", "Noqeri 1\.4"\)/)
-assert.match(generated,/clientVersion\(\)\{return '1\.4'\}/)
+assert.match(generated,/export function clientVersion\(\)\s*\{\s*return\s+['\"]1\.4['\"]\s*;?\s*\}/)
 for(const name of exports){
   assert.match(source,new RegExp('export function '+name+'\\('),'Noqeri source is missing '+name)
   assert.match(generated,new RegExp('export function '+name+'\\('),'Generated browser artifact is missing '+name)
