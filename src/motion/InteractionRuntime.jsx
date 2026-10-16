@@ -29,7 +29,9 @@ function animateElement(el,keyframes,options,bag,persist=false){
   const animation=el.animate(keyframes,{fill:'both',...options})
   bag.push(animation)
   animation.finished.catch(()=>{}).finally(()=>{
-    if(persist) animation.commitStyles?.()
+    if(persist){
+      try{animation.commitStyles?.()}catch{}
+    }
     animation.cancel()
   })
   return animation
@@ -40,6 +42,7 @@ function pageSpecificAnimations(reduced,bag){
   document.querySelectorAll('.syntax-tabs button').forEach((el,index)=>animateElement(el,[{opacity:0,transform:'translateX(-14px)'},{opacity:1,transform:'translateX(0)'}],{duration:340,delay:150+index*55,easing:'cubic-bezier(.22,1,.36,1)'},bag))
   document.querySelectorAll('.verify-path button').forEach((el,index)=>animateElement(el,[{opacity:.25,transform:'translateY(12px)'},{opacity:1,transform:'translateY(0)'}],{duration:420,delay:170+index*80,easing:'cubic-bezier(.22,1,.36,1)'},bag))
   document.querySelectorAll('.ecosystem-map g line').forEach((el,index)=>{
+    if(!el.animate)return
     el.style.strokeDasharray='260'
     el.style.strokeDashoffset='260'
     animateElement(el,[{strokeDashoffset:260},{strokeDashoffset:0}],{duration:850,delay:120+index*45,easing:'cubic-bezier(.22,1,.36,1)'},bag,true)
