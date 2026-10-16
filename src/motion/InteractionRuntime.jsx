@@ -3,7 +3,6 @@ import {useLocation} from 'react-router-dom'
 import {clientFinePointer,clientReducedMotion} from '../noqeri/client.generated.nqo'
 
 const ENTRY_SELECTORS=[
-  '.statement',
   '.registry-feature',
   '.verify-path button',
   '.ecosystem-map',
