@@ -14,7 +14,8 @@
     "test:static": "node scripts/static-files.test.mjs",
     "fuzz:network": "node scripts/fuzz-network.mjs",
     "repro": "node scripts/reproducible-build.mjs",
-    "quality": "npm run check && npm run test:static && npm run smoke && npm run test:source && npm run fuzz:network"
+    "quality": "npm run check && npm run test:client && npm run test:static && npm run smoke && npm run test:source && npm run fuzz:network",
+    "test:client": "node scripts/generated-client.test.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "4.3.4",
