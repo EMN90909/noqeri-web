@@ -1,0 +1,211 @@
+/* Focused refinements for route loading, source examples and the creator profile. */
+.route-loading {
+  display: grid;
+  min-height: 34vh;
+  place-items: center;
+  padding: 2rem;
+  color: var(--muted, #777);
+  font: 11px var(--mono, monospace);
+  letter-spacing: .08em;
+}
+
+.page-transition,
+.syntax-stage,
+.slash-transition,
+.cursor-follower {
+  backface-visibility: hidden;
+}
+
+.slash-transition,
+.cursor-follower {
+  will-change: transform;
+}
+
+.syntax-stage pre,
+.language-cli pre {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.syntax-tabs [role="tab"]:focus-visible,
+.preset-tabs button:focus-visible,
+.principles-list button:focus-visible {
+  outline: 2px solid var(--blue, #315fe8);
+  outline-offset: 3px;
+}
+
+.language-source-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(300px, .9fr);
+  gap: clamp(24px, 4vw, 54px);
+  margin: 32px clamp(24px, 4vw, 58px);
+  padding: clamp(22px, 4vw, 38px);
+  border: 1px solid var(--line, #deded9);
+  background: linear-gradient(135deg, #fff 0%, #f7f8fb 100%);
+}
+
+.language-source-card small,
+.language-cli small {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--blue, #315fe8);
+  font: 10px var(--mono, monospace);
+  letter-spacing: .09em;
+}
+
+.language-source-card h2 {
+  max-width: 18ch;
+  margin: 0 0 16px;
+  font-size: clamp(24px, 2.4vw, 36px);
+  line-height: 1.12;
+  letter-spacing: -.045em;
+}
+
+.language-source-card p {
+  max-width: 68ch;
+  color: #595a5f;
+  line-height: 1.7;
+}
+
+.language-source-card a {
+  color: var(--blue, #315fe8);
+  text-underline-offset: 3px;
+}
+
+.language-cli {
+  align-self: center;
+  min-width: 0;
+  padding: 20px;
+  background: #111;
+  color: #f4f4f1;
+}
+
+.language-cli pre {
+  margin: 0;
+  color: #e8ecff;
+  font: 12px/1.85 var(--mono, monospace);
+  white-space: pre;
+}
+
+.language-cli p {
+  margin: 16px 0 0;
+  color: #c9cbd5;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.language-cli p code {
+  color: #fff;
+}
+
+.about-founder {
+  display: grid;
+  grid-template-columns: minmax(190px, .72fr) minmax(0, 1.8fr);
+  gap: clamp(24px, 4vw, 60px);
+  align-items: start;
+  margin: 0 clamp(24px, 4vw, 58px) 32px;
+  padding: clamp(22px, 4vw, 42px);
+  border: 1px solid var(--line, #deded9);
+  background: linear-gradient(135deg, #fff 0%, #f7f8fb 100%);
+}
+
+.about-founder-aside {
+  display: grid;
+  justify-items: start;
+  align-content: start;
+  gap: 12px;
+}
+
+.about-founder-mark {
+  display: grid;
+  width: 76px;
+  height: 76px;
+  margin-bottom: 12px;
+  place-items: center;
+  background: #111;
+  color: #fff;
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -.06em;
+}
+
+.about-founder-aside small,
+.about-founder-copy .founder-label {
+  color: var(--blue, #315fe8);
+  font: 10px var(--mono, monospace);
+  letter-spacing: .09em;
+}
+
+.about-founder-aside strong {
+  font-size: 19px;
+  letter-spacing: -.025em;
+}
+
+.about-founder-aside span {
+  color: #666;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.about-founder-copy p {
+  max-width: 72ch;
+  margin: 0 0 16px;
+  color: #55565b;
+  line-height: 1.75;
+}
+
+.about-founder-copy .founder-label {
+  margin: 0 0 14px;
+}
+
+.about-founder-copy .founder-lead {
+  max-width: 34ch;
+  color: #151515;
+  font-size: clamp(22px, 2.2vw, 31px);
+  line-height: 1.33;
+  letter-spacing: -.04em;
+}
+
+.about-founder-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-top: 24px;
+}
+
+.about-founder-links a {
+  color: var(--blue, #315fe8);
+  font-size: 12px;
+  text-underline-offset: 3px;
+}
+
+.made-by {
+  white-space: normal;
+}
+
+@media (max-width: 760px) {
+  .language-source-card,
+  .about-founder {
+    grid-template-columns: 1fr;
+  }
+
+  .language-source-card {
+    margin: 28px 20px;
+  }
+
+  .about-founder {
+    margin: 0 20px 28px;
+  }
+
+  .language-cli {
+    padding: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slash-transition,
+  .cursor-follower {
+    display: none !important;
+  }
+}

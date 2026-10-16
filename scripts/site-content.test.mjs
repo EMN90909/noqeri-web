@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const root = join(dirname(fileURLToPath(import.meta.url)), '..')
+const read = path => readFile(join(root, path), 'utf8')
+const [app, language, about, playground, packageText] = await Promise.all([
+  read('src/App.jsx'),
+  read('src/pages/Language.jsx'),
+  read('src/pages/About.jsx'),
+  read('src/pages/Playground.jsx'),
+  read('package.json')
+])
+const packageJson = JSON.parse(packageText)
+
+assert.match(app, /const Docs = lazy\(\(\) => import\('\.\/pages\/Docs\.jsx'\)/)
+assert.match(app, /<Suspense fallback=/)
+assert.match(app, /el\.style\.transform='translate3d\('\+x\+/)
+assert.match(language, /repeat 4/)
+assert.match(language, /import package "noqeri\/base64"/)
+assert.match(language, /syntax\/token check/)
+assert.match(language, /does not promise full type-checking/)
+assert.match(about, /Made by Emmanuel Nasong'o/)
+assert.match(about, /teen developer inspired to make coding easier to learn/)
+assert.match(about, /implementation parity and tooling/)
+assert.match(playground, /noqeri\/base64/)
+assert.match(playground, /These are lightweight declaration counts, not compiler results\./)
+assert.match(packageJson.scripts['quality'], /npm run test:website/)
+console.log('Website route loading, language accuracy, creator credit and source-inspector contracts passed.')
