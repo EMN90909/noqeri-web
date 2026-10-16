@@ -9,8 +9,8 @@ extern function scrollYPosition(): i64
 extern function motionNow(): i64
 extern function motionProfile(): string
 
-export function clientVersion(): string { return "1.0" }
-export function writeNoqeriBadge(): bool { return domText("[data-noqeri-client]", "Noqeri 1.0") }
+export function clientVersion(): string { return "1.4" }
+export function writeNoqeriBadge(): bool { return domText("[data-noqeri-client]", "Noqeri 1.4") }
 export function clientReducedMotion(): bool { return mediaReducedMotion() }
 export function clientFinePointer(): bool { return mediaFinePointer() }
 export function clientViewportWidth(): i64 { return viewportWidth() }
