@@ -14,11 +14,12 @@ export const addedDocs=[
     s('When to use while','Use `while condition { ... }` when the stopping condition itself is meaningful.'),
     s('Evidence','The modified C++ lexer/parser has been compiled and executed locally with a focused frontend test; the repository also contains `tests/repeat_loop.nqr` in the maturity gate. Full release verification still depends on executing that gate with the release compiler.')
   ],'let total = 0\nrepeat 4 {\n  total = total + 3\n}\nprint(total)'),
-  d('database-verification','Data + NoqeriDB','Database verification','Understand what the release test suite actually proves about the current embedded database.',[
-    s('Release gate','Compiler verification creates a fresh `.nqdb`, declares a typed table, inserts rows, updates a row, selects by a predicate, then opens the same database from a second `.nqd` script.'),
-    s('Constraint gate','The release test also attempts a duplicate primary/key value and requires the command to fail.'),
-    s('Still not claimed','These checks establish current CRUD/persistence/constraint behavior. They do not establish WAL durability, concurrent transaction isolation, index performance or SQLite parity.')
-  ],'noqeri db app.nqd data/app.nqdb'),
+  d('database-verification','Data + NoqeriDB','Database verification','Understand what the historical release test suite proves and which parts have not reached stage-one CLI parity.',[
+    s('Release gate','The historical compiler verification gate creates a fresh `.nqdb`, declares a typed table, inserts rows, updates a row, selects by a predicate, then opens the same database from a second `.nqd` script. This does not mean the command is exposed by the current stage-one compiler.'),
+    s('Constraint gate','The historical release test also attempts a duplicate primary/key value and requires the command to fail.'),
+    s('Still not claimed','These checks establish the historical implementation's CRUD/persistence/constraint behavior. They do not establish WAL durability, concurrent transaction isolation, index performance or SQLite parity, and the current stage-one CLI does not expose `noqeri db` yet.')
+  ],'# Historical compiler path only; stage-one does not expose this command yet.
+noqeri db app.nqd data/app.nqdb'),
   d('package-downloads','Release + distribution','Package downloads','Download an exact deterministic `.nqpkg` from the public website on Linux, macOS or Windows.',[
     s('Browser + terminal','The Packages page exposes a direct download button plus shell-specific commands for each published release.'),
     s('Linux + macOS','Use `curl -fL` to follow the registry route and fail on HTTP errors.'),
@@ -37,9 +38,9 @@ export const addedDocs=[
     s('Source','Each repository includes its license notice and points to the complete GNU GPL v3 terms published by the Free Software Foundation.')
   ],'', 'Made by Noethric — https://noethric.xyz'),
   d('safety-modes','Quality + evidence','Safety diagnostic modes','Keep ordinary Noqeri simple while making expensive diagnostics explicit and repeatable.',[
-    s('Memory','`run --check-memory` is backed by an AddressSanitizer/UBSan-instrumented host build. It is a diagnostic mode, not a different language semantics mode.'),
-    s('Races','`test --race` uses a ThreadSanitizer-instrumented runtime/host build to surface data races reachable through the current implementation. A future Noqeri-native race detector may add language-aware task/source diagnostics; the current mode must not be described as that future detector.'),
-    s('Overflow','`test --overflow` enables checked integer execution so arithmetic overflow becomes a failing diagnostic instead of wrapped execution where wrapping is otherwise defined.'),
+    s('Memory','`run --check-memory` belongs to the historical runtime and uses an AddressSanitizer/UBSan-instrumented host build. The current stage-one CLI does not expose `run` yet.'),
+    s('Races','The historical `test --race` mode uses a ThreadSanitizer-instrumented runtime/host build to surface reachable data races. The current stage-one CLI does not expose `test` yet; this mode is not a native Noqeri race detector.'),
+    s('Overflow','The historical `test --overflow` mode enables checked integer execution; it is not available in the current stage-one CLI yet.'),
     s('Safe-language boundary','Dynamic safe indexing and null-sensitive raw accesses have explicit NIR checks; raw-pointer operations that bypass normal guarantees require an explicit `unsafe { ... }` boundary. These are implementation facts, not a universal all-backend safety claim.')
   ],'node Runtime/noqeri-quality.mjs run --check-memory app.nqr\nnode Runtime/noqeri-quality.mjs test --race tests\nnode Runtime/noqeri-quality.mjs test --overflow tests'),
   d('performance-evidence','Quality + evidence','Performance evidence','Measure first; compare second; market last.',[
