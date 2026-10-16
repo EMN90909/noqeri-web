@@ -24,13 +24,9 @@ function safeBool(fn,fallback=false){
 
 function animateElement(el,keyframes,options,bag){
   if(!el?.animate)return null
-  const fill=options?.fill??'both'
-  const animation=el.animate(keyframes,{fill,...options})
+  const animation=el.animate(keyframes,{fill:'both',...options})
   bag.push(animation)
   animation.finished.then(()=>{
-    if(fill==='both'){
-      try{animation.commitStyles?.()}catch{}
-    }
     try{animation.cancel()}catch{}
   },()=>{
     try{animation.cancel()}catch{}
@@ -65,7 +61,8 @@ function pageSpecificAnimations(reduced,bag){
   document.querySelectorAll('.ecosystem-map g line').forEach((el,index)=>{
     el.style.strokeDasharray='260'
     el.style.strokeDashoffset='260'
-    animateElement(el,[{strokeDashoffset:260},{strokeDashoffset:0}],{duration:850,delay:120+index*45,easing:'cubic-bezier(.22,1,.36,1)'},bag)
+    const animation=animateElement(el,[{strokeDashoffset:260},{strokeDashoffset:0}],{duration:850,delay:120+index*45,easing:'cubic-bezier(.22,1,.36,1)'},bag)
+    if(animation)animation.finished.then(()=>{el.style.strokeDashoffset='0'},()=>{})
   })
   document.querySelectorAll('.benchmark-row > div span').forEach((el,index)=>animateElement(el,[{transform:'scaleX(0)'},{transform:getComputedStyle(el).transform==='none'?'scaleX(1)':getComputedStyle(el).transform}],{duration:900,delay:160+index*110,easing:'cubic-bezier(.22,1,.36,1)'},bag))
   document.querySelectorAll('.compiler-flow span,.compiler-flow i').forEach((el,index)=>animateElement(el,[{opacity:.2,transform:'translateY(-5px)'},{opacity:1,transform:'translateY(0)'}],{duration:300,delay:120+index*55,easing:'ease-out'},bag))
