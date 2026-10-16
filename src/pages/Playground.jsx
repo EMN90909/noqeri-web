@@ -1,4 +1,123 @@
-import React,{useMemo,useState} from 'react'
+import React,{useEffect,useState} from 'react'
 import {Page} from '../components.jsx'
-const presets={Hello:'module demo\n\nprint("Hello, Noqeri")',Functions:'module demo\n\nfunction twice(value: i64): i64 {\n  return value * 2\n}\n\nprint(twice(21))',Modules:'module app.main\nimport web.http\n\nfunction main(): void {\n  print("module loaded")\n}', 'Data shape':'record User {\n  id: u64\n  name: string\n}\n\nlet user = User { id: 1, name: "Ada" }'}
-export function Playground(){const[name,setName]=useState('Functions'),[code,setCode]=useState(presets.Functions),[pulse,setPulse]=useState(false),[copied,setCopied]=useState(false);const a=useMemo(()=>({lines:code.split('\n').length,functions:(code.match(/\bfunction\b/g)||[]).length,modules:(code.match(/\bmodule\b/g)||[]).length,records:(code.match(/\brecord\b/g)||[]).length}),[code]);function load(x){setName(x);setCode(presets[x])}function inspect(){setPulse(true);setTimeout(()=>setPulse(false),900)}async function copy(){await navigator.clipboard?.writeText(code);setCopied(true);setTimeout(()=>setCopied(false),1200)}return <Page kicker="PLAYGROUND / BROWSER" title="Try Noqeri in the browser." intro="Edit a small program and inspect its shape. The browser build does not bundle the real compiler, so this page never invents compiler output."><div className="preset-tabs">{Object.keys(presets).map(x=><button className={name===x?'active':''} onClick={()=>load(x)} key={x}>{x}</button>)}</div><section className="playground-designer"><div className="play-editor"><header><span>source.nqr</span><div><button onClick={copy}>{copied?'Copied ✓':'Copy'}</button><button onClick={()=>load(name)}>Reset</button></div></header><textarea value={code} onChange={e=>setCode(e.target.value)} spellCheck="false" aria-label="Noqeri source"/></div><div className={`compiler-flow${pulse?' pulse':''}`}><button onClick={inspect}>Inspect</button>{['Source','Parse','Type','NIR','Output'].map((x,i)=><React.Fragment key={x}><span>{x}</span>{i<4&&<i/>}</React.Fragment>)}</div><aside className="play-output"><header>INSPECTION</header><p>Run the real compiler locally to see program output.</p><dl><dt>lines</dt><dd>{a.lines}</dd><dt>functions</dt><dd>{a.functions}</dd><dt>modules</dt><dd>{a.modules}</dd><dt>records</dt><dd>{a.records}</dd></dl><small>Source inspected — no fake runtime.</small></aside></section></Page>}
+
+const presets={
+  Hello:'module demo\n\nfunction main(): void {\n  print("Hello, Noqeri")\n}',
+  Functions:'function twice(value: i64): i64 {\n  return value * 2\n}\n\nfunction main(): void {\n  print(twice(21 as i64))\n}',
+  Modules:'module app.main\nimport "./math.nqr"\n\nfunction main(): void {\n  print("Local import syntax")\n}',
+  Records:'record User {\n  id: u64\n  name: string\n}\n\nfunction printId(user: *User): void {\n  print(user.id)\n}'
+}
+
+function inspectSource(source){
+  const counts={
+    lines:source.length?source.split(/\r\n?|\n/).length:0,
+    functions:0,
+    modules:0,
+    records:0
+  }
+  const kinds={function:'functions',module:'modules',record:'records'}
+  let index=0
+  while(index<source.length){
+    if(source.startsWith('//',index)){
+      while(index<source.length&&source[index]!=='\n')index++
+      continue
+    }
+    if(source.startsWith('/*',index)){
+      const end=source.indexOf('*/',index+2)
+      index=end<0?source.length:end+2
+      continue
+    }
+    const char=source[index]
+    if(char==='"'||char==="'"){
+      const quote=char
+      index++
+      while(index<source.length){
+        if(source[index]==='\\'){index+=2;continue}
+        if(source[index]===quote){index++;break}
+        index++
+      }
+      continue
+    }
+    if(/[A-Za-z_]/.test(char)){
+      const start=index++
+      while(index<source.length&&/[A-Za-z0-9_]/.test(source[index]))index++
+      const key=kinds[source.slice(start,index)]
+      if(key)counts[key]++
+      continue
+    }
+    index++
+  }
+  return counts
+}
+
+export function Playground(){
+  const [name,setName]=useState('Functions')
+  const [code,setCode]=useState(presets.Functions)
+  const [inspection,setInspection]=useState(()=>inspectSource(presets.Functions))
+  const [dirty,setDirty]=useState(false)
+  const [pulse,setPulse]=useState(false)
+  const [copyStatus,setCopyStatus]=useState('')
+
+  useEffect(()=>{
+    if(!pulse)return
+    const timer=window.setTimeout(()=>setPulse(false),650)
+    return()=>window.clearTimeout(timer)
+  },[pulse])
+
+  useEffect(()=>{
+    if(!copyStatus)return
+    const timer=window.setTimeout(()=>setCopyStatus(''),1800)
+    return()=>window.clearTimeout(timer)
+  },[copyStatus])
+
+  function load(preset){
+    const next=presets[preset]
+    setName(preset)
+    setCode(next)
+    setInspection(inspectSource(next))
+    setDirty(false)
+    setCopyStatus('')
+  }
+
+  function inspect(){
+    setInspection(inspectSource(code))
+    setDirty(false)
+    setPulse(false)
+    requestAnimationFrame(()=>setPulse(true))
+  }
+
+  async function copy(){
+    try{
+      if(!navigator.clipboard?.writeText){
+        setCopyStatus('Clipboard access is unavailable here. Select the source and copy it manually.')
+        return
+      }
+      await navigator.clipboard.writeText(code)
+      setCopyStatus('Source copied.')
+    }catch{
+      setCopyStatus('Copy was blocked by the browser. Select the source and copy it manually.')
+    }
+  }
+
+  return <Page kicker="PLAYGROUND / SOURCE INSPECTOR" title="Try Noqeri in the browser." intro="Edit examples based on the current language reference and inspect their declaration shape. This browser page does not compile or execute source; use the Noqeri CLI for compiler diagnostics.">
+    <div className="preset-tabs" role="group" aria-label="Example programs">{Object.keys(presets).map(preset=><button className={name===preset?'active':''} onClick={()=>load(preset)} key={preset}>{preset}</button>)}</div>
+    <section className="playground-designer">
+      <div className="play-editor">
+        <header><span>source.nqr</span><div><button type="button" onClick={copy}>Copy source</button><button type="button" onClick={()=>load(name)}>Reset</button></div></header>
+        <textarea value={code} onChange={event=>{setCode(event.target.value);setDirty(true)}} spellCheck="false" aria-label="Noqeri source"/>
+        <p className="playground-status" role="status" aria-live="polite">{copyStatus}</p>
+      </div>
+      <div className={'compiler-flow'+(pulse?' pulse':'')}>
+        <button type="button" onClick={inspect}>Inspect source</button>
+        {['Source','Declarations','Types','NIR','Output'].map((step,index)=><React.Fragment key={step}><span>{step}</span>{index<4&&<i aria-hidden="true"/>}</React.Fragment>)}
+      </div>
+      <aside className="play-output">
+        <header>SOURCE SHAPE</header>
+        <p>These are lightweight declaration counts, not compiler results.</p>
+        <dl><dt>lines</dt><dd>{inspection.lines}</dd><dt>functions</dt><dd>{inspection.functions}</dd><dt>modules</dt><dd>{inspection.modules}</dd><dt>records</dt><dd>{inspection.records}</dd></dl>
+        <small>{dirty?'Source changed — inspect again to refresh counts.':'No compilation or runtime execution performed.'}</small>
+        <p className="playground-cli">For compiler checks: <code>./build/noqeri check file.nqr</code></p>
+      </aside>
+    </section>
+  </Page>
+}
