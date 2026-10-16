@@ -22,7 +22,7 @@
 
 /* Shared motion primitives */
 .animated-rule{height:1px;background:linear-gradient(90deg,var(--motion-blue) 0 22%,var(--line) 22% 100%);transform-origin:left}
-.motion-card{position:relative;overflow:hidden;will-change:transform}
+.motion-card{position:relative;overflow:hidden}.motion-card:hover,.motion-card:focus-within{will-change:transform}
 .motion-card .card-rule{position:absolute;left:0;top:0;width:100%;height:2px;background:var(--motion-blue);transform:scaleX(0);transform-origin:left;transition:transform .24s var(--motion-editorial)}
 .motion-card:hover .card-rule,.motion-card:focus-within .card-rule{transform:scaleX(1)}
 .motion-card .card-index,.motion-card h3{transition:transform .2s var(--motion-editorial),color .18s ease}
@@ -98,3 +98,5 @@
 @media(pointer:coarse),(hover:none){.premium-hero .hero-copy,.premium-hero .hero-code{transform:none!important}.motion-card:hover{transform:none}.capability-grid .grid:hover .motion-card:not(:hover){opacity:1}}
 @media(max-width:760px){.route-rule{height:1px}.premium-hero .hero-copy,.premium-hero .hero-code{transform:none!important}.reading-progress{top:60px}.package-toolbar{align-items:stretch;flex-wrap:wrap}.package-filter{order:3;max-width:none;width:100%}.package-command-grid{grid-template-columns:1fr}.package-install-panel{grid-column:1}.kinetic-code:after{display:none}}
 @media(prefers-reduced-motion:reduce){.route-rule,.hero-kicker:after,.kinetic-code:after,.compiler-pulse{animation:none!important}.premium-hero .hero-copy,.premium-hero .hero-code{transform:none!important;transition:none!important}.motion-card,.motion-card *,.motion-cta,.motion-cta *,.package-catalog-row *,.masthead *{transition-duration:.001ms!important}.capability-grid .grid:hover .motion-card:not(:hover){opacity:1}}
+
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
