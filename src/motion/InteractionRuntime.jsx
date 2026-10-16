@@ -4,9 +4,6 @@ import {clientFinePointer,clientReducedMotion} from '../noqeri/client.generated.
 
 const ENTRY_SELECTORS=[
   '.statement',
-  '.capability-plate',
-  '.syntax-stage',
-  '.syntax-tiles button',
   '.registry-feature',
   '.verify-path button',
   '.ecosystem-map',
@@ -17,7 +14,6 @@ const ENTRY_SELECTORS=[
   '.playground-designer',
   '.community-cards a',
   '.about-origin',
-  '.principles-list button',
   '.about-timeline',
   '.broken-code'
 ].join(',')
@@ -28,29 +24,18 @@ function safeBool(fn,fallback=false){
 
 function animateElement(el,keyframes,options,bag){
   if(!el?.animate)return null
-  const animation=el.animate(keyframes,{fill:'both',...options})
+  const fill=options?.fill??'both'
+  const animation=el.animate(keyframes,{fill,...options})
   bag.push(animation)
-  animation.finished.catch(()=>{}).finally(()=>{
-    if(options?.fill==='both') animation.commitStyles?.()
-    animation.cancel()
+  animation.finished.then(()=>{
+    if(fill==='both'){
+      try{animation.commitStyles?.()}catch{}
+    }
+    try{animation.cancel()}catch{}
+  },()=>{
+    try{animation.cancel()}catch{}
   })
   return animation
-}
-
-function routeWipe(reduced,bag){
-  if(reduced)return
-  const wipe=document.createElement('div')
-  wipe.className='nq-native-route-wipe'
-  wipe.setAttribute('aria-hidden','true')
-  document.body.appendChild(wipe)
-  const animation=wipe.animate([
-    {transform:'translate3d(-115%,0,0) skewX(-7deg)'},
-    {transform:'translate3d(-12%,0,0) skewX(-7deg)',offset:.42},
-    {transform:'translate3d(12%,0,0) skewX(-7deg)',offset:.58},
-    {transform:'translate3d(115%,0,0) skewX(-7deg)'}
-  ],{duration:560,easing:'cubic-bezier(.22,1,.36,1)'})
-  bag.push(animation)
-  animation.finished.catch(()=>{}).finally(()=>wipe.remove())
 }
 
 function heroEntrance(reduced,bag){
@@ -58,16 +43,12 @@ function heroEntrance(reduced,bag){
   const hero=document.querySelector('.premium-hero')
   if(!hero)return
   const rail=hero.querySelector('.hero-number')
-  const kicker=hero.querySelector('.kicker')
-  const lines=[...hero.querySelectorAll('.hero-line')]
   const copy=hero.querySelector('.hero-copy > p')
   const actions=hero.querySelector('.hero-actions')
   const pipeline=hero.querySelector('.hero-pipeline')
   const code=hero.querySelector('.hero-code')
 
   animateElement(rail,[{opacity:0,transform:'translateY(-22px)'},{opacity:1,transform:'translateY(0)'}],{duration:460,easing:'cubic-bezier(.22,1,.36,1)'},bag)
-  animateElement(kicker,[{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'translateY(0)'}],{duration:420,delay:90,easing:'cubic-bezier(.22,1,.36,1)'},bag)
-  lines.forEach((line,index)=>animateElement(line,[{transform:'translateY(112%)'},{transform:'translateY(0)'}],{duration:700,delay:130+index*105,easing:'cubic-bezier(.22,1,.36,1)'},bag))
   animateElement(copy,[{opacity:0,transform:'translateY(18px)'},{opacity:1,transform:'translateY(0)'}],{duration:520,delay:330,easing:'cubic-bezier(.22,1,.36,1)'},bag)
   animateElement(actions,[{opacity:0,transform:'translateY(16px)'},{opacity:1,transform:'translateY(0)'}],{duration:480,delay:410,easing:'cubic-bezier(.22,1,.36,1)'},bag)
   animateElement(pipeline,[{opacity:0,letterSpacing:'.22em'},{opacity:1,letterSpacing:'.08em'}],{duration:520,delay:490,easing:'cubic-bezier(.22,1,.36,1)'},bag)
@@ -75,18 +56,6 @@ function heroEntrance(reduced,bag){
 
   const codeLines=[...hero.querySelectorAll('.hero-code code')]
   codeLines.forEach((line,index)=>animateElement(line,[{clipPath:'inset(0 100% 0 0)',opacity:.35},{clipPath:'inset(0 0 0 0)',opacity:1}],{duration:760,delay:560+index*40,easing:'cubic-bezier(.22,1,.36,1)'},bag))
-}
-
-function pageEntrance(reduced,bag){
-  if(reduced)return
-  const hero=document.querySelector('.page-hero')
-  if(!hero)return
-  const kicker=hero.querySelector('.kicker')
-  const title=hero.querySelector('h1')
-  const intro=hero.querySelector('p')
-  animateElement(kicker,[{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'translateY(0)'}],{duration:360,easing:'cubic-bezier(.22,1,.36,1)'},bag)
-  animateElement(title,[{clipPath:'inset(0 0 100% 0)',transform:'translateY(24px)'},{clipPath:'inset(0 0 0 0)',transform:'translateY(0)'}],{duration:680,delay:50,easing:'cubic-bezier(.22,1,.36,1)'},bag)
-  animateElement(intro,[{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'translateY(0)'}],{duration:480,delay:180,easing:'cubic-bezier(.22,1,.36,1)'},bag)
 }
 
 function pageSpecificAnimations(reduced,bag){
@@ -114,10 +83,9 @@ export function InteractionRuntime(){
     root.dataset.nqMotion=reduced?'reduced':'full'
     root.dataset.nqPointer=fine?'fine':'coarse'
 
-    routeWipe(reduced,animations)
-    requestAnimationFrame(()=>{
+    let entranceFrame=0
+    entranceFrame=requestAnimationFrame(()=>{
       heroEntrance(reduced,animations)
-      pageEntrance(reduced,animations)
       pageSpecificAnimations(reduced,animations)
     })
 
@@ -135,20 +103,19 @@ export function InteractionRuntime(){
     }
 
     const hero=document.querySelector('.premium-hero')
-    let ticking=false
+    let scrollFrame=0
     const onScroll=()=>{
-      if(ticking)return
-      ticking=true
-      requestAnimationFrame(()=>{
+      if(scrollFrame)return
+      scrollFrame=requestAnimationFrame(()=>{
         const y=window.scrollY||0
         root.style.setProperty('--nq-scroll-y',String(y))
-        root.style.setProperty('--nq-scroll-progress',String(Math.min(1,y/Math.max(1,document.documentElement.scrollHeight-innerHeight))))
+        root.style.setProperty('--nq-scroll-progress',String(Math.min(1,y/Math.max(1,document.documentElement.scrollHeight-window.innerHeight))))
         if(hero&&!reduced){
           const amount=Math.min(18,y*.035)
           hero.style.setProperty('--nq-head-parallax',`${amount*.55}px`)
           hero.style.setProperty('--nq-code-parallax',`${amount}px`)
         }
-        ticking=false
+        scrollFrame=0
       })
     }
     window.addEventListener('scroll',onScroll,{passive:true})
@@ -157,6 +124,8 @@ export function InteractionRuntime(){
     return()=>{
       observer?.disconnect()
       window.removeEventListener('scroll',onScroll)
+      cancelAnimationFrame(entranceFrame)
+      if(scrollFrame)cancelAnimationFrame(scrollFrame)
       animations.forEach(animation=>{try{animation.cancel()}catch{}})
       document.querySelectorAll('[data-nq-seen]').forEach(el=>delete el.dataset.nqSeen)
     }
