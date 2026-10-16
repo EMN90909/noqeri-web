@@ -16,7 +16,7 @@ const packageJson = JSON.parse(packageText)
 
 assert.match(app, /const Docs = lazy\(\(\) => import\('\.\/pages\/Docs\.jsx'\)/)
 assert.match(app, /<Suspense fallback=/)
-assert.match(app, /el\.style\.transform='translate3d\('\+x\+/)
+assert.ok(app.includes("element.style.transform = 'translate3d(' + x + 'px, ' + y + 'px, 0)'"))
 assert.match(language, /repeat 4/)
 assert.match(language, /import package "noqeri\/base64"/)
 assert.match(language, /syntax\/token check/)
