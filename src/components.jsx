@@ -17,23 +17,15 @@ export function Page({ kicker, title, intro, children }) {
 
 export function Code({ children,label='NOQERI' }) {
   const [copied,setCopied]=useState(false)
-  const [copyError,setCopyError]=useState('')
   const text=typeof children==='string'?children:''
   useEffect(()=>{if(!copied)return;const id=setTimeout(()=>setCopied(false),1400);return()=>clearTimeout(id)},[copied])
   async function copy(){
-    if(!text)return
-    setCopyError('')
-    try{
-      if(!navigator.clipboard?.writeText)throw new Error('Clipboard unavailable')
-      await navigator.clipboard.writeText(text)
-      setCopied(true)
-    }catch{
-      setCopied(false)
-      setCopyError('Copy unavailable; select the code and copy manually.')
-    }
+    if(!text||!navigator.clipboard)return
+    await navigator.clipboard.writeText(text)
+    setCopied(true)
   }
   return <div className={`code-shell${copied?' is-copied':''}`}>
-    <div className="code-toolbar"><span>{label}</span>{copyError&&<span className="code-copy-error" role="status" aria-live="polite">{copyError}</span>}{text&&<button type="button" onClick={copy} aria-live="polite">{copied?'COPIED ✓':'COPY'}</button>}</div>
+    <div className="code-toolbar"><span>{label}</span>{text&&<button type="button" onClick={copy} aria-live="polite">{copied?'COPIED ✓':'COPY'}</button>}</div>
     <pre className="code"><code>{children}</code></pre>
   </div>
 }

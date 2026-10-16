@@ -1,18 +1,4 @@
-// Checked-in bootstrap artifact; keep in sync with client.nqr until stage-one web codegen ships.
-const domText=(selector,value)=>{const node=document.querySelector(selector);if(!node)return false;node.textContent=String(value);return true}
-const mediaReducedMotion=()=>typeof window!=='undefined'&&Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches)
-const mediaFinePointer=()=>typeof window!=='undefined'&&Boolean(window.matchMedia?.('(hover: hover) and (pointer: fine)')?.matches)
-const viewportWidth=()=>typeof window!=='undefined'?Number(window.innerWidth)||0:0
-const viewportHeight=()=>typeof window!=='undefined'?Number(window.innerHeight)||0:0
-const scrollYPosition=()=>typeof window!=='undefined'?Number(window.scrollY)||0:0
-const motionNow=()=>typeof performance!=='undefined'?Math.round(performance.now()):0
-const motionProfile=()=>JSON.stringify({reducedMotion:mediaReducedMotion(),finePointer:mediaFinePointer(),viewportWidth:viewportWidth(),viewportHeight:viewportHeight(),scrollY:scrollYPosition(),now:motionNow()})
-export function clientVersion(){return '1.4'}
-export function writeNoqeriBadge(){return domText('[data-noqeri-client]','Noqeri 1.4')}
-export function clientReducedMotion(){return mediaReducedMotion()}
-export function clientFinePointer(){return mediaFinePointer()}
-export function clientViewportWidth(){return viewportWidth()}
-export function clientViewportHeight(){return viewportHeight()}
-export function clientScrollY(){return scrollYPosition()}
-export function clientMotionNow(){return motionNow()}
-export function clientMotionProfile(){return motionProfile()}
+// Checked-in bootstrap artifact. CI and Docker regenerate this from client.nqr.
+export const domText=(selector,value)=>{const node=document.querySelector(selector);if(!node)return false;node.textContent=String(value);return true}
+export function clientVersion(){return '1.0'}
+export function writeNoqeriBadge(){return domText('[data-noqeri-client]','Noqeri 1.0')}

@@ -1,4 +1,4 @@
-import React,{useEffect,useRef,useState} from 'react'
+import React,{useState} from 'react'
 import {motion} from 'motion/react'
 import {Code,CTA} from '../components.jsx'
 import {AnimatedRule,Reveal} from '../motion/primitives.jsx'
@@ -8,38 +8,25 @@ const sample=`module app.home\n\nfunction greet(name: string): string {\n    ret
 const plates=[['Native','target','Typed NIR, ABI boundaries and explicit systems features.'],['Web','host','Browser and server capabilities through portable web objects.'],['Data','.nqd','Compact typed data surfaces close to the language.'],['Packages','lock','Deterministic package surfaces you can inspect and pin.']]
 
 export function Home(){
-  const {reduced,finePointer,tokens}=useNoqeriMotion()
+  const {reduced,tokens}=useNoqeriMotion()
   const [active,setActive]=useState(0)
-  const glowFrame=useRef(0)
-  const glowPosition=useRef({x:70,y:35})
-  useEffect(()=>()=>{if(glowFrame.current)cancelAnimationFrame(glowFrame.current)},[])
   function trackCodeLight(event){
-    if(reduced||!finePointer)return
+    if(reduced||!window.matchMedia('(pointer:fine) and (hover:hover)').matches)return
     const rect=event.currentTarget.getBoundingClientRect()
-    if(!rect.width||!rect.height)return
-    glowPosition.current={
-      x:((event.clientX-rect.left)/rect.width)*100,
-      y:((event.clientY-rect.top)/rect.height)*100
-    }
-    if(glowFrame.current)return
-    const element=event.currentTarget
-    glowFrame.current=requestAnimationFrame(()=>{
-      glowFrame.current=0
-      const {x,y}=glowPosition.current
-      element.style.setProperty('--glow-x',String(x.toFixed(1))+'%')
-      element.style.setProperty('--glow-y',String(y.toFixed(1))+'%')
-    })
+    const x=((event.clientX-rect.left)/rect.width)*100
+    const y=((event.clientY-rect.top)/rect.height)*100
+    event.currentTarget.style.setProperty('--glow-x',`${x.toFixed(1)}%`)
+    event.currentTarget.style.setProperty('--glow-y',`${y.toFixed(1)}%`)
   }
   function resetCodeLight(event){
-    if(glowFrame.current){cancelAnimationFrame(glowFrame.current);glowFrame.current=0}
     event.currentTarget.style.setProperty('--glow-x','70%')
     event.currentTarget.style.setProperty('--glow-y','35%')
   }
   return <>
     <section className="home-hero premium-hero">
-      <div className="hero-number">1.4</div>
+      <div className="hero-number">1.0</div>
       <div className="hero-copy">
-        <motion.div className="kicker" initial={reduced?false:{opacity:0,y:8}} animate={{opacity:1,y:0}}>NOQERI LANGUAGE 1.4 / NATIVE + WEB + DATA</motion.div>
+        <motion.div className="kicker" initial={reduced?false:{opacity:0,y:8}} animate={{opacity:1,y:0}}>NOQERI 1.0 / NATIVE + WEB + DATA</motion.div>
         <h1>
           <span className="hero-line-mask"><motion.span className="hero-line" initial={reduced?false:{y:'110%'}} animate={{y:0}} transition={{duration:tokens.duration.hero,ease:tokens.ease.editorial}}>One language.</motion.span></span>
           <span className="hero-line-mask"><motion.em className="hero-line" initial={reduced?false:{y:'110%'}} animate={{y:0}} transition={{delay:reduced?0:.09,duration:tokens.duration.hero,ease:tokens.ease.editorial}}>More places.</motion.em></span>

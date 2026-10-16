@@ -18,18 +18,11 @@ export function NoqeriMotionProvider({children}){
   }))
 
   useEffect(()=>{
-    let frame=0
-    const refresh=()=>{
-      if(frame)return
-      frame=requestAnimationFrame(()=>{
-        frame=0
-        setRuntime({
-          reduced:Boolean(clientReducedMotion()),
-          finePointer:Boolean(clientFinePointer()),
-          profile:readNoqeriMotionProfile()
-        })
-      })
-    }
+    const refresh=()=>setRuntime({
+      reduced:Boolean(clientReducedMotion()),
+      finePointer:Boolean(clientFinePointer()),
+      profile:readNoqeriMotionProfile()
+    })
     refresh()
     const media=window.matchMedia?.('(prefers-reduced-motion: reduce)')
     const pointer=window.matchMedia?.('(hover: hover) and (pointer: fine)')
@@ -40,7 +33,6 @@ export function NoqeriMotionProvider({children}){
       media?.removeEventListener?.('change',refresh)
       pointer?.removeEventListener?.('change',refresh)
       window.removeEventListener('resize',refresh)
-      if(frame)cancelAnimationFrame(frame)
     }
   },[])
 
