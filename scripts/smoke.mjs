@@ -6,7 +6,7 @@ process.on('exit',stop)
 try{
   await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('server start timeout')),12000);child.stdout.on('data',data=>{if(String(data).includes('listening')){clearTimeout(timer);resolve()}});child.on('exit',code=>reject(new Error(`server exited ${code}`)))})
   const health=await fetch(`http://127.0.0.1:${port}/api/health`).then(r=>r.json())
-  if(health.status!=='ok'||health.source!=='Noqeri'||health.language!=='1.0')throw new Error('Noqeri API health mismatch')
+  if(health.status!=='ok'||health.source!=='Noqeri'||health.language!=='1.4')throw new Error('Noqeri API health mismatch')
   const meta=await fetch(`http://127.0.0.1:${port}/api/meta`).then(r=>r.json())
   if(meta.compiler!=='1.0.0')throw new Error('Noqeri API metadata mismatch')
   const db=await fetch(`http://127.0.0.1:${port}/api/db-demo`).then(r=>r.text())
