@@ -5,7 +5,7 @@ extern function dbOpen(path: string): usize
 extern function dbExec(database: usize, script: string): string
 
 export function apiStatus(): string { return "ok" }
-export function apiLanguage(): string { return "1.0" }
+export function apiLanguage(): string { return "1.4" }
 export function apiEdition(): string { return "2026" }
 export function apiCompiler(): string { return "1.0.0" }
 export function apiRegistry(): string { return "https://github.com/EMN90909/noqeri-registry" }
