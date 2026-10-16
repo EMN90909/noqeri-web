@@ -30,7 +30,7 @@ function PageMeta() {
   useEffect(() => {
     window.scrollTo(0, 0)
     const rawTitle = location.pathname === '/' ? 'Noqeri' : location.pathname.split('/').filter(Boolean).join(' · ')
-    const title = rawTitle.split(/[-/]+/).filter(Boolean).map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' · ')
+    const title = rawTitle.split(' · ').map(section => section.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ')).join(' · ')
     document.title = title + ' — Noqeri'
   }, [location.pathname])
   return null
