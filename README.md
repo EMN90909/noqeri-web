@@ -29,12 +29,7 @@ npm run build
 npm run smoke
 ```
 
-To regenerate Noqeri browser/server objects locally:
-
-```sh
-noqeri web backend/api.nqr backend/api.generated.nqo
-noqeri web src/noqeri/client.nqr src/noqeri/client.generated.nqo
-```
+The checked-in `.nqo` files are JavaScript bootstrap artifacts used by Vite and the Node host. Keep each artifact in sync with its corresponding `.nqr` source. The current self-hosted stage-one CLI does not expose the historical `noqeri web` source-to-JavaScript generator yet, so do not run that command with a stage-one binary. When working with a compiler revision that includes the legacy web generator, regenerate the matching artifact and review its exports before committing.
 
 Automatic GitHub Actions CI is intentionally disabled/removed so repository pushes do not consume Actions minutes. Build and smoke-test locally before pushing.
 
