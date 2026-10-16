@@ -1,4 +1,4 @@
-import React,{useState} from 'react'
+import React,{useEffect,useRef,useState} from 'react'
 import {motion} from 'motion/react'
 import {Code,CTA} from '../components.jsx'
 import {AnimatedRule,Reveal} from '../motion/primitives.jsx'
@@ -8,17 +8,30 @@ const sample=`module app.home\n\nfunction greet(name: string): string {\n    ret
 const plates=[['Native','target','Typed NIR, ABI boundaries and explicit systems features.'],['Web','host','Browser and server capabilities through portable web objects.'],['Data','.nqd','Compact typed data surfaces close to the language.'],['Packages','lock','Deterministic package surfaces you can inspect and pin.']]
 
 export function Home(){
-  const {reduced,tokens}=useNoqeriMotion()
+  const {reduced,finePointer,tokens}=useNoqeriMotion()
   const [active,setActive]=useState(0)
+  const glowFrame=useRef(0)
+  const glowPosition=useRef({x:70,y:35})
+  useEffect(()=>()=>{if(glowFrame.current)cancelAnimationFrame(glowFrame.current)},[])
   function trackCodeLight(event){
-    if(reduced||!window.matchMedia('(pointer:fine) and (hover:hover)').matches)return
+    if(reduced||!finePointer)return
     const rect=event.currentTarget.getBoundingClientRect()
-    const x=((event.clientX-rect.left)/rect.width)*100
-    const y=((event.clientY-rect.top)/rect.height)*100
-    event.currentTarget.style.setProperty('--glow-x',`${x.toFixed(1)}%`)
-    event.currentTarget.style.setProperty('--glow-y',`${y.toFixed(1)}%`)
+    if(!rect.width||!rect.height)return
+    glowPosition.current={
+      x:((event.clientX-rect.left)/rect.width)*100,
+      y:((event.clientY-rect.top)/rect.height)*100
+    }
+    if(glowFrame.current)return
+    const element=event.currentTarget
+    glowFrame.current=requestAnimationFrame(()=>{
+      glowFrame.current=0
+      const {x,y}=glowPosition.current
+      element.style.setProperty('--glow-x',String(x.toFixed(1))+'%')
+      element.style.setProperty('--glow-y',String(y.toFixed(1))+'%')
+    })
   }
   function resetCodeLight(event){
+    if(glowFrame.current){cancelAnimationFrame(glowFrame.current);glowFrame.current=0}
     event.currentTarget.style.setProperty('--glow-x','70%')
     event.currentTarget.style.setProperty('--glow-y','35%')
   }
