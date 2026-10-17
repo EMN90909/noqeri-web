@@ -29,11 +29,11 @@ npm run build
 npm run smoke
 ```
 
-To regenerate Noqeri browser/server objects locally:
+To try generating **restricted browser ES modules** locally (requires a verified Stage-2 compiler; backend support is not production-ready):
 
 ```sh
-noqeri web backend/api.nqr backend/api.generated.nqo
-noqeri web src/noqeri/client.nqr src/noqeri/client.generated.nqo
+noqeri web backend/api.nqr backend/api.generated.mjs
+noqeri web src/noqeri/client.nqr src/noqeri/client.generated.mjs
 ```
 
 Automatic GitHub Actions CI is intentionally disabled/removed so repository pushes do not consume Actions minutes. Build and smoke-test locally before pushing.
@@ -43,3 +43,11 @@ Automatic GitHub Actions CI is intentionally disabled/removed so repository push
 GNU GPL v3 only (`GPL-3.0-only`). See `LICENSE`.
 
 Made by [Noethric](https://noethric.xyz).
+
+## Compiler compatibility and distribution status (2026-10-17)
+
+The Noqeri language is **pre-release**. Having website installers and a download endpoint does not prove the compiler boots on a clean machine. `Noqeri/scripts/build.sh` requires a trusted Stage-0 seed that can compile `Compiler/selfhost/main.nqr` to the **Stage-2 ES module** expected by the portable host, and now checks the output's JS syntax and exported ABI before accepting it. That end-to-end bootstrap has **not** been verified. Binary NQO2 objects are not JavaScript modules.
+
+For the website, React/Vite can run independently of a verified Noqeri compiler. Noqeri-generated API/client modules should only be deployed after compiler checks, import tests and host-capability tests pass. Do not present generated `.nqo` as importable JS. Source installation endpoints fetch source; they do not supply a proven executable or verified release archive. Avoid claiming native Windows/Linux/macOS parity until tested installers, signatures/hashes, and smoke results exist.
+
+Registry package listings are not equivalent to tested package compatibility. The registry index and package manager should be verified with a local release gate and offline integrity tests before distribution is called stable.
