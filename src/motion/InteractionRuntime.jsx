@@ -1,6 +1,6 @@
 import {useEffect} from 'react'
 import {useLocation} from 'react-router-dom'
-import {clientFinePointer,clientReducedMotion} from '../noqeri/client.generated.nqo'
+import {clientFinePointer,clientReducedMotion} from './browser-profile.js'
 
 const ENTRY_SELECTORS=[
   '.capability-plate',
