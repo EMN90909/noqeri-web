@@ -77,3 +77,8 @@ npm run smoke           # requires GitHub API/raw access and a built dist/
 ```
 
 These checks are not all equivalent. Static and mocked tests do **not** certify live end-to-end archive availability, real browser frame time, accessibility, compiler bootstrap or native database durability. The `npm run smoke` test requires an accessible network and real registry files; run it from a deployment-like environment before claiming production readiness. No GitHub Actions CI is automatically enabled.
+
+
+## NoeSQL npm integration status (v0.7.6)
+
+The Packages and Install pages now document NoeSQL's versioned npm source contract and clearly label `npm install noesql@0.7.6` as a **future publication command**. The NoeSQL repo remains private and there is no verified published npm tarball or public registry entry; the site deliberately does not create a fake downloadable package. Noqeri's self-hosted native SQL engine and Zig pager integration remain release-gated. Website automation must only advertise a working npm installation after a real registry response and an authorized, integrity-verified package release.
