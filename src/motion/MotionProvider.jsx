@@ -28,11 +28,9 @@ export function NoqeriMotionProvider({children}){
     const pointer=window.matchMedia?.('(hover: hover) and (pointer: fine)')
     media?.addEventListener?.('change',refresh)
     pointer?.addEventListener?.('change',refresh)
-    window.addEventListener('resize',refresh,{passive:true})
     return()=>{
       media?.removeEventListener?.('change',refresh)
       pointer?.removeEventListener?.('change',refresh)
-      window.removeEventListener('resize',refresh)
     }
   },[])
 
