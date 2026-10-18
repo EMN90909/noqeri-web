@@ -1,7 +1,7 @@
 import React,{createContext,useContext,useEffect,useMemo,useState} from 'react'
 import { MotionConfig,useReducedMotion } from 'motion/react'
 import { motionTokens } from './tokens.js'
-import { clientFinePointer,clientMotionProfile,clientReducedMotion } from '../noqeri/client.generated.nqo'
+import { clientFinePointer,clientMotionProfile,clientReducedMotion } from './browser-profile.js'
 
 const NoqeriMotionContext=createContext({reduced:false,finePointer:false,profile:null,tokens:motionTokens})
 
