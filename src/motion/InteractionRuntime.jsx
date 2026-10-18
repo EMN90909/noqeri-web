@@ -3,7 +3,6 @@ import {useLocation} from 'react-router-dom'
 import {clientFinePointer,clientReducedMotion} from './browser-profile.js'
 
 const ENTRY_SELECTORS=[
-  '.capability-plate',
   '.syntax-stage',
   '.syntax-tiles button',
   '.registry-feature',
@@ -83,30 +82,10 @@ export function InteractionRuntime(){
       document.querySelectorAll(ENTRY_SELECTORS).forEach(el=>observer.observe(el))
     }
 
-    const hero=document.querySelector('.premium-hero')
-    let scrollFrame=0
-    const onScroll=()=>{
-      if(scrollFrame)return
-      scrollFrame=requestAnimationFrame(()=>{
-        scrollFrame=0
-        const y=window.scrollY||0
-        root.style.setProperty('--nq-scroll-y',String(y))
-        root.style.setProperty('--nq-scroll-progress',String(Math.min(1,y/Math.max(1,document.documentElement.scrollHeight-innerHeight))))
-        if(hero&&!reduced){
-          const amount=Math.min(18,y*.035)
-          hero.style.setProperty('--nq-head-parallax',`${amount*.55}px`)
-          hero.style.setProperty('--nq-code-parallax',`${amount}px`)
-        }
-      })
-    }
-    window.addEventListener('scroll',onScroll,{passive:true})
-    onScroll()
 
     return()=>{
       if(setupFrame)cancelAnimationFrame(setupFrame)
-      if(scrollFrame)cancelAnimationFrame(scrollFrame)
       observer?.disconnect()
-      window.removeEventListener('scroll',onScroll)
       animations.forEach(animation=>{try{animation.cancel()}catch{}})
       document.querySelectorAll('[data-nq-seen]').forEach(el=>delete el.dataset.nqSeen)
     }
