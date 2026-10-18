@@ -12,7 +12,7 @@
     "smoke": "node scripts/smoke.mjs",
     "test:source": "node scripts/source-install.test.mjs",
     "test:motion": "node scripts/motion-contract.test.mjs",
-    "test:packages": "node --test scripts/package-catalog.test.mjs"
+    "test:packages": "node --test scripts/package-catalog.test.mjs scripts/registry-download.test.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "4.3.4",
