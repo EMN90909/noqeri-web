@@ -4,8 +4,8 @@ const partPattern = /^[a-z0-9][a-z0-9-]*$/
 
 function parseVersion(version) {
   if (!versionPattern.test(version)) return null
-  const [core, rest = ''] = version.split('-', 2)
-  return { components: core.split('.').map(BigInt), prerelease: rest.split('+')[0].split('.').filter(Boolean) }
+  const match = /^(\\d+\\.\\d+\\.\\d+)(?:-([0-9A-Za-z.-]+))?(?:\\+[0-9A-Za-z.-]+)?$/.exec(version)
+  return { components: match[1].split('.').map(BigInt), prerelease: match[2]?.split('.') || [] }
 }
 export function compareVersions(a, b) {
   const left = parseVersion(a), right = parseVersion(b)
