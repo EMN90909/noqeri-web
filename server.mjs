@@ -3,8 +3,9 @@ import { readFile, stat } from 'node:fs/promises'
 import { extname, join, normalize, resolve, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { gzipSync } from 'node:zlib'
+import { createHash } from 'node:crypto'
 import { createNoqeriHost } from './runtime/noqeri-host.mjs'
-import { registryIndex, packageArchive } from './runtime/registry-download.mjs'
+import { registryIndex, packageArchive, RegistryError } from './runtime/registry-download.mjs'
 import { shellInstaller, powershellInstaller, sourceInfo } from './runtime/source-install.mjs'
 
 const base=fileURLToPath(new URL('.',import.meta.url))
@@ -33,6 +34,7 @@ async function staticFile(req,res,urlPath){
     if(/^(text\/|application\/(javascript|json))/.test(type)&&data.length>1024&&(req.headers['accept-encoding']||'').includes('gzip'))return send(req,res,200,{'Content-Type':type,'Content-Encoding':'gzip','Cache-Control':immutable?'public, max-age=31536000, immutable':'public, max-age=300'},gzipSync(data,{level:6}))
     return send(req,res,200,{'Content-Type':type,'Cache-Control':immutable?'public, max-age=31536000, immutable':'public, max-age=300'},data)
   }catch{
+    if(extname(path)||urlPath.startsWith('/assets/'))return json(req,res,404,{error:'not_found'})
     const index=await readFile(join(root,'index.html'));return send(req,res,200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache'},index)
   }
 }
@@ -54,12 +56,12 @@ const server=createServer(async(req,res)=>{
     if(url.pathname==='/get/noqeri.ps1')return send(req,res,200,{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'public, max-age=300'},powershellInstaller(origin,url.searchParams.get('ref')||'main'))
     if(url.pathname==='/source/noqeri')return json(req,res,200,sourceInfo(origin,url.searchParams.get('ref')||'main'))
     if(url.pathname==='/registry/index.json')return json(req,res,200,await registryIndex())
-    const pkg=url.pathname.match(/^\/registry\/([a-z0-9-]+)\/([a-z0-9-]+)\/([0-9][a-z0-9.-]*)\/download\.nqpkg$/i)
-    if(pkg){const archive=await packageArchive(pkg[1],pkg[2],pkg[3]);return send(req,res,200,{'Content-Type':'application/vnd.noqeri.package+gzip','Content-Disposition':`attachment; filename="${pkg[1]}-${pkg[2]}-${pkg[3]}.nqpkg"`,'Cache-Control':'public, max-age=300'},archive)}
+    const pkg=url.pathname.match(/^\/registry\/([a-z0-9-]+)\/([a-z0-9-]+)\/([0-9][a-z0-9.+-]*)\/download\.nqpkg$/i)
+    if(pkg){const archive=await packageArchive(pkg[1],pkg[2],pkg[3]);return send(req,res,200,{'Content-Type':'application/vnd.noqeri.package+gzip','Content-Disposition':`attachment; filename="${pkg[1]}-${pkg[2]}-${pkg[3]}.nqpkg"`,'Cache-Control':'public, max-age=300','X-Archive-SHA256':createHash('sha256').update(archive).digest('hex')},archive)}
     const staticRoute=host.routes.get(`${method} ${url.pathname}`)||host.routes.get(`GET ${url.pathname}`);if(staticRoute)return send(req,res,staticRoute.status,{'Content-Type':staticRoute.type,'Cache-Control':'no-store'},staticRoute.body)
     if(api.serverCanHandle?.(method,url.pathname)){const status=api.serverStatus(method,url.pathname);const type=api.serverContentType(method,url.pathname);const body=api.serverHandle(method,url.pathname);return send(req,res,status,{'Content-Type':type,'Cache-Control':'no-store'},body)}
     return await staticFile(req,res,url.pathname)
-  }catch(error){console.error(error);return json(req,res,500,{error:'internal_error'})}
+  }catch(error){if(error instanceof RegistryError)return json(req,res,error.status,{error:error.message});console.error(error);return json(req,res,500,{error:'internal_error'})}
 })
 server.requestTimeout=10_000
 server.headersTimeout=12_000
