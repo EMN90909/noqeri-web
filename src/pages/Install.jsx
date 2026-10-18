@@ -3,7 +3,7 @@ import {Page} from '../components.jsx'
 const commands={
   macOS:'git clone https://github.com/EMN90909/Noqeri.git\ncd Noqeri\n# Requires a trusted Noqeri compiler seed, then:\nexport NOQERI_STAGE0=/absolute/path/to/trusted/noqeri\nsh scripts/build.sh\nnode scripts/qualify-release.mjs',
   Linux:'git clone https://github.com/EMN90909/Noqeri.git\ncd Noqeri\n# Requires a trusted Noqeri compiler seed, then:\nexport NOQERI_STAGE0=/absolute/path/to/trusted/noqeri\nsh scripts/build.sh\nnode scripts/qualify-release.mjs',
-  Windows:'git clone https://github.com/EMN90909/Noqeri.git\ncd Noqeri\n# Requires an independently verified trusted compiler seed\n$env:NOQERI_STAGE0 = "C:\\path\\to\\trusted\\\noqeri.exe"\nPowerShell -NoProfile -File scripts/build.ps1\nnode scripts/qualify-release.mjs',
+  Windows:"git clone https://github.com/EMN90909/Noqeri.git\ncd Noqeri\n# Requires an independently verified trusted compiler seed\n$env:NOQERI_STAGE0 = \"C:/path/to/trusted/noqeri.exe\"\nPowerShell -NoProfile -File scripts/build.ps1\nnode scripts/qualify-release.mjs",
   Manual:'Source downloads are not compiled installers. Read Doc/SELF_HOSTING.md and supply a trusted NOQERI_STAGE0 before building. No verified bootstrap seed is bundled.'
 }
 const steps=[['Get source','Clone the official repository or download the source archive.'],['Supply seed','Set NOQERI_STAGE0 to a trusted executable capable of compiling Compiler/selfhost/main.nqr.'],['Build and verify','Run the platform build script. A source download alone does not provide a runnable Noqeri compiler.'],['Qualification','Run node scripts/qualify-release.mjs; missing prerequisites must report failure rather than certification.']]
