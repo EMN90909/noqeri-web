@@ -24,9 +24,9 @@ export function Home(){
   }
   return <>
     <section className="home-hero premium-hero">
-      <div className="hero-number">1.0</div>
+      <div className="hero-number">0.7</div>
       <div className="hero-copy">
-        <motion.div className="kicker" initial={reduced?false:{opacity:0,y:8}} animate={{opacity:1,y:0}}>NOQERI 1.0 / NATIVE + WEB + DATA</motion.div>
+        <motion.div className="kicker" initial={reduced?false:{opacity:0,y:8}} animate={{opacity:1,y:0}}>NOQERI 0.7 DEV / NATIVE + WEB + DATA</motion.div>
         <h1>
           <span className="hero-line-mask"><motion.span className="hero-line" initial={reduced?false:{y:'110%'}} animate={{y:0}} transition={{duration:tokens.duration.hero,ease:tokens.ease.editorial}}>One language.</motion.span></span>
           <span className="hero-line-mask"><motion.em className="hero-line" initial={reduced?false:{y:'110%'}} animate={{y:0}} transition={{delay:reduced?0:.09,duration:tokens.duration.hero,ease:tokens.ease.editorial}}>More places.</motion.em></span>
