@@ -6,6 +6,8 @@ Official website, documentation and Registry/package browser for Noqeri. The **w
 
 The website can run without a qualified Noqeri Stage-2 native toolchain. Its active API and client browser shims are standard ES modules; the original `.nqr` and `.nqo` files have moved to `tests/fixtures/legacy/`. The web API reports Noqeri's current verified development identity from the checked-in transport, not a falsely certified language release. Noqeri's separate `1.0.0` stabilization branch is **not** a published production release.
 
+As of October 21, 2026, the only three `.nqr` and two `.nqo` paths remaining on `main` are **test fixtures under `tests/fixtures/legacy/`**. Active Noqeri source consists of three `.noqeri` files, and the website's generated browser modules use `.mjs` rather than `.nqri`.
+
 The `/api/db-demo` route no longer opens the legacy NoqeriDB `.nqdb` format. It uses `runtime/noesql-demo.mjs` and fails with **503** if the private NoeSQL module is not installed. This prevents silently persisting unrelated database formats.
 
 ## Registry migration without breaking the website
