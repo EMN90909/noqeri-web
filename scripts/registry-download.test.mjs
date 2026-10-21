@@ -1,36 +1,42 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { gunzipSync } from 'node:zlib'
-import { packageArchive, RegistryError } from '../runtime/registry-download.mjs'
+import { createHash } from 'node:crypto'
+import { packageArchive, registryIndex, registryBaseUrl, RegistryError } from '../runtime/registry-download.mjs'
 
-test('download archive contains the real registry manifest and entry; yanked releases fail',async()=>{
-  const original=globalThis.fetch
-  const base='packages/noqeri/package-test/0.4.0'
-  const manifest=Buffer.from('package {\n  entry: "src/main.nqr"\n}\n')
-  const source=Buffer.from('export function ready(): bool { return true }\n')
-  const index={packages:[{namespace:'noqeri',name:'package-test',versions:[
-    {version:'1.0.0',yanked:true,path:'packages/noqeri/package-test/1.0.0'},
-    {version:'0.4.0',yanked:false,path:base}
-  ]}]}
-  const files=[
-    {type:'file',path:base+'/package.nqr',download_url:'https://raw.githubusercontent.com/EMN90909/noqeri-registry/main/'+base+'/package.nqr'},
-    {type:'file',path:base+'/src/main.nqr',download_url:'https://raw.githubusercontent.com/EMN90909/noqeri-registry/main/'+base+'/src/main.nqr'}
-  ]
-  globalThis.fetch=async url=>{
-    const u=String(url)
-    if(u.endsWith('/registry/index.json'))return new Response(JSON.stringify(index))
-    if(u.includes('/contents/'+base+'?ref=main'))return new Response(JSON.stringify(files))
-    if(u.endsWith(base+'/package.nqr'))return new Response(manifest)
-    if(u.endsWith(base+'/src/main.nqr'))return new Response(source)
-    throw new Error('unexpected registry request: '+u)
+test('Registry API URL must be HTTPS, except for local development', () => {
+  assert.throws(() => registryBaseUrl({}), /NOQERI_REGISTRY_API_URL/)
+  assert.throws(() => registryBaseUrl({ NOQERI_REGISTRY_API_URL: 'http://evil.test' }), /HTTPS/)
+  assert.equal(registryBaseUrl({ NOQERI_REGISTRY_API_URL: 'http://localhost:7070/' }), 'http://localhost:7070')
+})
+
+test('Web requests only Registry HTTP API, verifies archive SHA-256 and excludes yanked releases', async () => {
+  const previousFetch = globalThis.fetch
+  const previousBase = process.env.NOQERI_REGISTRY_API_URL
+  const archive = Buffer.from('nqpkg-test-archive')
+  const archiveIntegrity = 'sha256:' + createHash('sha256').update(archive).digest('hex')
+  const seen = []
+  process.env.NOQERI_REGISTRY_API_URL = 'https://registry.example.test'
+  globalThis.fetch = async url => {
+    const path = new URL(url).pathname
+    seen.push(path)
+    if (path === '/v1/index') return new Response(JSON.stringify({ packages: [{ namespace: 'noqeri', name: 'test' }] }))
+    if (path === '/v1/packages/noqeri/test/1.0.0') return new Response(JSON.stringify({ version: '1.0.0', yanked: false, archiveIntegrity }))
+    if (path === '/v1/packages/noqeri/test/1.0.0/download') return new Response(archive)
+    if (path === '/v1/packages/noqeri/test/2.0.0') return new Response(JSON.stringify({ version: '2.0.0', yanked: true, archiveIntegrity }))
+    return new Response(null, { status: 404 })
   }
-  try{
-    const archive=await packageArchive('noqeri','package-test','0.4.0')
-    const bytes=gunzipSync(archive)
-    assert.equal(bytes.toString('utf8',0,100).replace(/\0.*$/s,''),'package.nqr')
-    assert.ok(bytes.includes(manifest))
-    assert.ok(bytes.includes(source))
-    await assert.rejects(packageArchive('noqeri','package-test','1.0.0'),e=>e instanceof RegistryError&&e.status===404)
-    await assert.rejects(packageArchive('..','package-test','0.4.0'),e=>e instanceof RegistryError&&e.status===400)
-  }finally{globalThis.fetch=original}
+  try {
+    assert.equal((await registryIndex()).packages[0].name, 'test')
+    assert.deepEqual(await packageArchive('noqeri', 'test', '1.0.0'), archive)
+    await assert.rejects(packageArchive('noqeri', 'test', '2.0.0'), error => error instanceof RegistryError && error.status === 404)
+    await assert.rejects(packageArchive('..', 'test', '1.0.0'), error => error instanceof RegistryError && error.status === 400)
+    assert.deepEqual(seen, ['/v1/index', '/v1/packages/noqeri/test/1.0.0', '/v1/packages/noqeri/test/1.0.0/download', '/v1/packages/noqeri/test/2.0.0'])
+    globalThis.fetch = async url => new URL(url).pathname.endsWith('/download')
+      ? new Response(Buffer.from('tampered')) : new Response(JSON.stringify({ version: '1.0.0', yanked: false, archiveIntegrity }))
+    await assert.rejects(packageArchive('noqeri', 'test', '1.0.0'), /integrity mismatch/)
+  } finally {
+    globalThis.fetch = previousFetch
+    if (previousBase === undefined) delete process.env.NOQERI_REGISTRY_API_URL
+    else process.env.NOQERI_REGISTRY_API_URL = previousBase
+  }
 })
