@@ -41,8 +41,7 @@ async function staticFile(req,res,urlPath){
 
 const host=createNoqeriHost({dataRoot,noqeriBin})
 globalThis.NoqeriHost=host
-const nqo=await readFile(join(base,'backend','api.generated.nqo'),'utf8')
-const api=await import(`data:text/javascript;base64,${Buffer.from(nqo).toString('base64')}`)
+const api=await import(new URL('./backend/api.generated.mjs',import.meta.url).href)
 api.configureServer?.()
 
 const server=createServer(async(req,res)=>{
