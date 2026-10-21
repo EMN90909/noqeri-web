@@ -2,7 +2,7 @@ import React,{useEffect,useRef,useState} from 'react'
 import {motion} from 'motion/react'
 import {NavLink,Route,Routes,useLocation} from 'react-router-dom'
 import {Home} from './pages/Home.jsx';import {Language} from './pages/Language.jsx';import {Docs} from './pages/Docs.jsx';import {Packages} from './pages/Packages.jsx';import {Registry} from './pages/Registry.jsx';import {Ecosystem} from './pages/Ecosystem.jsx';import {Benchmarks} from './pages/Benchmarks.jsx';import {Install} from './pages/Install.jsx';import {Playground} from './pages/Playground.jsx';import {Community} from './pages/Community.jsx';import {About} from './pages/About.jsx';import {NotFound} from './pages/NotFound.jsx'
-import {clientVersion} from './noqeri/client.generated.nqo'
+import {clientVersion} from './noqeri/client.generated.mjs'
 import {useNoqeriMotion} from './motion/MotionProvider.jsx'
 import {InteractionRuntime} from './motion/InteractionRuntime.jsx'
 const nav=[['Language','/language'],['Docs','/docs'],['Packages','/packages'],['Registry','/registry'],['Ecosystem','/ecosystem']]

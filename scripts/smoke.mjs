@@ -9,8 +9,8 @@ try{
   if(health.status!=='ok'||health.source!=='Noqeri'||health.language!=='0.7.0-dev')throw new Error('Noqeri API health mismatch')
   const meta=await fetch(`http://127.0.0.1:${port}/api/meta`).then(r=>r.json())
   if(meta.compiler!=='0.7.0')throw new Error('Noqeri API metadata mismatch')
-  const db=await fetch(`http://127.0.0.1:${port}/api/db-demo`).then(r=>r.text())
-  if(!db.includes('status')||!db.includes('ok'))throw new Error('NoqeriDB web-host integration failed')
+  const db=await fetch(`http://127.0.0.1:${port}/api/db-demo`)
+  if(db.status!==503||(await db.json()).error!=='noesql_runtime_unavailable')throw new Error('NoeSQL integration must fail closed without private engine')
   const registry=await fetch(`http://127.0.0.1:${port}/registry/index.json`).then(r=>r.json())
   if(!registry.packages?.some(p=>p.name==='json'))throw new Error('registry web index missing package')
   const archive=await fetch(`http://127.0.0.1:${port}/registry/noqeri/json/0.4.0/download.nqpkg`)
@@ -27,5 +27,5 @@ try{
   if(!docs.ok||(await docs.text()).indexOf('<div id="root"></div>')<0)throw new Error('SPA docs fallback failed')
   const home=await fetch(`http://127.0.0.1:${port}/`)
   if(!home.headers.get('content-security-policy'))throw new Error('security headers missing')
-  console.log('web, Noqeri API, NoqeriDB and registry download smoke tests passed')
+  console.log('web, Noqeri API, NoeSQL fail-closed and registry download smoke tests passed')
 } finally {stop()}

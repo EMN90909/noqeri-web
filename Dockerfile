@@ -9,7 +9,7 @@ COPY --from=noqeri /src/build/noqeri /usr/local/bin/noqeri
 COPY package.json ./
 RUN npm install --no-audit --no-fund
 COPY . .
-RUN noqeri web backend/api.nqr backend/api.generated.nqo && noqeri web src/noqeri/client.nqr src/noqeri/client.generated.nqo && npm run build
+RUN noqeri web backend/api.noqeri backend/api.generated.mjs && noqeri web src/noqeri/client.noqeri src/noqeri/client.generated.mjs && npm run build
 
 FROM node:22-alpine AS runtime
 ENV NODE_ENV=production PORT=8080 NOQERI_BIN=/usr/local/bin/noqeri
