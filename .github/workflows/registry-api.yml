@@ -1,0 +1,18 @@
+name: Website Registry v1 integration
+on:
+  push:
+    branches: [integration/registry-api-v1]
+  pull_request:
+    branches: [main]
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: npm install --no-audit --no-fund
+      - run: npm run build
+      - run: npm run test:packages
+      - run: npm run smoke
