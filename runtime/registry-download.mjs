@@ -23,9 +23,19 @@ async function get(path,limit,accept) {
  if(!res.ok)throw new RegistryError(res.status===404?'package not found':'registry API unavailable',res.status===404?404:502)
  const length=Number(res.headers.get('content-length')||0)
  if(!Number.isFinite(length)||length>limit)throw new RegistryError('registry response too large',422)
- const bytes=Buffer.from(await res.arrayBuffer())
- if(bytes.length>limit)throw new RegistryError('registry response too large',422)
- return bytes
+ const reader=res.body?.getReader()
+ if(!reader)throw new RegistryError('registry response stream unavailable')
+ const chunks=[];let total=0
+ try{
+  for(;;){
+   const {value,done}=await reader.read()
+   if(done)break
+   total+=value.byteLength
+   if(total>limit)throw new RegistryError('registry response too large',422)
+   chunks.push(Buffer.from(value))
+  }
+ }catch(e){await reader.cancel().catch(()=>{});throw e}
+ return Buffer.concat(chunks,total)
 }
 async function json(path){
  let v
