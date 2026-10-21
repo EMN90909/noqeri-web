@@ -2,7 +2,7 @@
 
 Official public website, documentation interface and reference hosted runtime for Noqeri.
 
-The site is React + Vite with a small Node transport host. Noqeri-authored `.nqr` remains the application/API language layer; Node owns HTTP transport and static-file delivery.
+The site is React + Vite with a small Node transport host. Canonical Noqeri application/API source uses `.noqeri` (`backend/api.noqeri`). Node temporarily owns HTTP transport and static-file delivery; the archived `.nqr` / `.nqo` files are compatibility fixtures, **not** a qualified Stage-2 compiler output.
 
 ## Get the Noqeri source from a terminal
 
@@ -46,7 +46,7 @@ Made by [Noethric](https://noethric.xyz).
 
 ## Compiler compatibility and distribution status (2026-10-17)
 
-The Noqeri language is **pre-release**. Having website installers and a download endpoint does not prove the compiler boots on a clean machine. `Noqeri/scripts/build.sh` requires a trusted Stage-0 seed that can compile `Compiler/selfhost/main.nqr` to the **Stage-2 ES module** expected by the portable host, and now checks the output's JS syntax and exported ABI before accepting it. That end-to-end bootstrap has **not** been verified. Binary NQO2 objects are not JavaScript modules.
+Noqeri is at **1.0.0 stabilization-candidate**, not production-qualified. Website API `/api/meta` reports `qualified:false` until compiler/runtime qualification is completed. Having website installers and a download endpoint does not prove the compiler boots on a clean machine. `Noqeri/scripts/build.sh` requires a trusted Stage-0 seed that can compile `Compiler/selfhost/main.nqr` to the **Stage-2 ES module** expected by the portable host, and now checks the output's JS syntax and exported ABI before accepting it. That end-to-end bootstrap has **not** been verified. Binary NQO2 objects are not JavaScript modules.
 
 For the website, React/Vite can run independently of a verified Noqeri compiler. Noqeri-generated API/client modules should only be deployed after compiler checks, import tests and host-capability tests pass. Do not present generated `.nqo` as importable JS. Source installation endpoints fetch source; they do not supply a proven executable or verified release archive. Avoid claiming native Windows/Linux/macOS parity until tested installers, signatures/hashes, and smoke results exist.
 
