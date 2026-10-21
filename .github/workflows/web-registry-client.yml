@@ -1,0 +1,26 @@
+name: Web Registry API boundary
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  website:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: node --test scripts/registry-download.test.mjs scripts/package-catalog.test.mjs
+      - run: npm run build
+      - name: Reject active source references to legacy compiled JavaScript modules
+        run: |
+          if grep -R --include='*.jsx' --include='*.js' "generated.nqo" src; then
+            echo 'legacy .nqo JavaScript shim is still used by the web UI' >&2
+            exit 1
+          fi
