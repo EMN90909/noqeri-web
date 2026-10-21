@@ -1,3 +1,5 @@
+**Canonical ecosystem integration:** [Registry `/v1` API client, `.noqeri` web sources, `.mjs` browser output and NoeSQL release gates](docs/CANONICAL_INTEGRATION.md). The site no longer fetches package contents directly from GitHub.
+
 # Noqeri Web
 
 Official public website, documentation interface and reference hosted runtime for Noqeri.
