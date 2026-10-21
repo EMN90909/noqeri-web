@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { gzipSync } from 'node:zlib'
 import { createHash } from 'node:crypto'
 import { createNoqeriHost } from './runtime/noqeri-host.mjs'
+import { createV1ApiTransport } from './runtime/v1-api-transport.mjs'
 import { registryIndex, packageArchive, RegistryError } from './runtime/registry-download.mjs'
 import { shellInstaller, powershellInstaller, sourceInfo } from './runtime/source-install.mjs'
 
@@ -42,8 +43,10 @@ async function staticFile(req,res,urlPath){
 
 const host=createNoqeriHost({dataRoot,noqeriBin})
 globalThis.NoqeriHost=host
-const nqo=await readFile(join(base,'backend','api.generated.nqo'),'utf8')
-const api=await import(`data:text/javascript;base64,${Buffer.from(nqo).toString('base64')}`)
+// Compiled .nqo artifact is a historical compatibility fixture, never a
+// qualified Stage-2 Noqeri backend. Serve documented metadata through the
+// explicit interim transport until the self-hosted compiler passes its gate.
+const api=createV1ApiTransport(host)
 api.configureServer?.()
 
 const server=createServer(async(req,res)=>{
