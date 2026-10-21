@@ -1,0 +1,4 @@
+// Checked-in legacy bootstrap transpilation (not an NQRI object). CI and Docker regenerate this from client.noqeri.
+export const domText=(selector,value)=>{const node=document.querySelector(selector);if(!node)return false;node.textContent=String(value);return true}
+export function clientVersion(){return '0.7.0-dev'}
+export function writeNoqeriBadge(){return domText('[data-noqeri-client]','Noqeri 0.7 development')}
