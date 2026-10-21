@@ -14,7 +14,7 @@ const dataRoot=join(base,'data')
 const port=Number(process.env.PORT||8080)
 const noqeriBin=process.env.NOQERI_BIN||'/usr/local/bin/noqeri'
 const cache=new Map()
-const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.nqo':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.ico':'image/x-icon','.txt':'text/plain; charset=utf-8'}
+const types={'.noqeri':'text/plain; charset=utf-8','.nqri':'application/octet-stream','.nqon':'application/vnd.noqeri.nqon; charset=utf-8','.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.nqo':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.ico':'image/x-icon','.txt':'text/plain; charset=utf-8'}
 const security={
   'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin',
   'Permissions-Policy':'camera=(), microphone=(), geolocation=()',
@@ -25,6 +25,7 @@ function send(req,res,status,headers,body){res.writeHead(status,{...security,...
 function json(req,res,status,value){send(req,res,status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'},JSON.stringify(value))}
 function safeStatic(urlPath){let decoded;try{decoded=decodeURIComponent(urlPath)}catch{throw new Error('bad path encoding')}const clean=normalize(decoded).replace(/^[/\\]+/,'');const full=resolve(root,clean);const rel=relative(root,full);if(rel==='..'||rel.startsWith('..'+sep))throw new Error('path escape');return full}
 async function staticFile(req,res,urlPath){
+  if(/\.(?:noedb|nqdb|nqd|wal|lck)$/i.test(urlPath))return json(req,res,404,{error:'not_found'})
   let path=safeStatic(urlPath)
   try{if((await stat(path)).isDirectory())path=join(path,'index.html')}catch{}
   try{
@@ -55,6 +56,11 @@ const server=createServer(async(req,res)=>{
     if(url.pathname==='/get/noqeri')return send(req,res,200,{'Content-Type':'text/x-shellscript; charset=utf-8','Cache-Control':'public, max-age=300'},shellInstaller(origin,url.searchParams.get('ref')||'main'))
     if(url.pathname==='/get/noqeri.ps1')return send(req,res,200,{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'public, max-age=300'},powershellInstaller(origin,url.searchParams.get('ref')||'main'))
     if(url.pathname==='/source/noqeri')return json(req,res,200,sourceInfo(origin,url.searchParams.get('ref')||'main'))
+    if(url.pathname==='/api/db-demo'){
+      const {runNoeSQLDemo}=await import('./runtime/noesql-demo.mjs')
+      const result=await runNoeSQLDemo(dataRoot)
+      return json(req,res,result.status,result.body)
+    }
     if(url.pathname==='/registry/index.json')return json(req,res,200,await registryIndex())
     const pkg=url.pathname.match(/^\/registry\/([a-z0-9-]+)\/([a-z0-9-]+)\/([0-9][a-z0-9.+-]*)\/download\.nqpkg$/i)
     if(pkg){const archive=await packageArchive(pkg[1],pkg[2],pkg[3]);return send(req,res,200,{'Content-Type':'application/vnd.noqeri.package+gzip','Content-Disposition':`attachment; filename="${pkg[1]}-${pkg[2]}-${pkg[3]}.nqpkg"`,'Cache-Control':'public, max-age=300','X-Archive-SHA256':createHash('sha256').update(archive).digest('hex')},archive)}
