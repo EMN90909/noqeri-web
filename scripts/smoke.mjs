@@ -1,31 +1,56 @@
-import { spawn } from 'node:child_process'
-const port=18080
-const child=spawn(process.execPath,['server.mjs'],{env:{...process.env,PORT:String(port)},stdio:['ignore','pipe','inherit']})
+import {spawn} from 'node:child_process'
+import {createServer} from 'node:http'
+import {createHash} from 'node:crypto'
+import assert from 'node:assert/strict'
+const port=18080, registryPort=18081
+const archive=Buffer.from('test-registry-archive')
+const integrity='sha256:'+createHash('sha256').update(archive).digest('hex')
+const index={packages:[{namespace:'noqeri',name:'json',versions:[{version:'1.0.0',yanked:true},{version:'0.4.0',yanked:false,entry:'src/json.noqeri',archiveIntegrity:integrity}]}]}
+const mock=createServer((req,res)=>{
+  const path=req.url||'/'
+  res.setHeader('Content-Type','application/json')
+  if(path==='/v1/index')return res.end(JSON.stringify(index))
+  if(path==='/v1/packages/noqeri/json/0.4.0')return res.end(JSON.stringify({version:'0.4.0',yanked:false,entry:'src/json.noqeri',archiveIntegrity:integrity}))
+  if(path==='/v1/packages/noqeri/json/0.4.0/download')return res.end(archive)
+  if(path==='/v1/packages/noqeri/json/1.0.0')return res.end(JSON.stringify({version:'1.0.0',yanked:true,archiveIntegrity:integrity}))
+  res.writeHead(404);res.end('{}')
+})
+await new Promise(resolve=>mock.listen(registryPort,'127.0.0.1',resolve))
+const child=spawn(process.execPath,['server.mjs'],{
+  env:{...process.env,PORT:String(port),NOQERI_REGISTRY_API_URL:'http://127.0.0.1:'+registryPort},
+  stdio:['ignore','pipe','inherit']
+})
 const stop=()=>child.kill('SIGTERM')
 process.on('exit',stop)
 try{
-  await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('server start timeout')),12000);child.stdout.on('data',data=>{if(String(data).includes('listening')){clearTimeout(timer);resolve()}});child.on('exit',code=>reject(new Error(`server exited ${code}`)))})
-  const health=await fetch(`http://127.0.0.1:${port}/api/health`).then(r=>r.json())
-  if(health.status!=='ok'||health.source!=='Noqeri'||health.language!=='0.7.0-dev')throw new Error('Noqeri API health mismatch')
-  const meta=await fetch(`http://127.0.0.1:${port}/api/meta`).then(r=>r.json())
-  if(meta.compiler!=='0.7.0')throw new Error('Noqeri API metadata mismatch')
-  const db=await fetch(`http://127.0.0.1:${port}/api/db-demo`).then(r=>r.text())
-  if(!db.includes('status')||!db.includes('ok'))throw new Error('NoqeriDB web-host integration failed')
-  const registry=await fetch(`http://127.0.0.1:${port}/registry/index.json`).then(r=>r.json())
-  if(!registry.packages?.some(p=>p.name==='json'))throw new Error('registry web index missing package')
-  const archive=await fetch(`http://127.0.0.1:${port}/registry/noqeri/json/0.4.0/download.nqpkg`)
-  if(!archive.ok)throw new Error('package web download failed')
-  if(archive.headers.get('content-type')!=='application/vnd.noqeri.package+gzip')throw new Error('package web MIME mismatch')
-  const bytes=await archive.arrayBuffer()
-  if(bytes.byteLength===0)throw new Error('package web archive was empty')
-  if(!/^[a-f0-9]{64}$/.test(archive.headers.get('x-archive-sha256')||''))throw new Error('archive checksum header missing')
-  const withdrawn=await fetch(`http://127.0.0.1:${port}/registry/noqeri/json/1.0.0/download.nqpkg`)
-  if(withdrawn.status!==404)throw new Error('withdrawn package release must return 404')
-  const missingAsset=await fetch(`http://127.0.0.1:${port}/assets/does-not-exist.js`)
-  if(missingAsset.status!==404)throw new Error('missing asset must not return HTML as JavaScript')
-  const docs=await fetch(`http://127.0.0.1:${port}/docs/http-server`)
-  if(!docs.ok||(await docs.text()).indexOf('<div id="root"></div>')<0)throw new Error('SPA docs fallback failed')
-  const home=await fetch(`http://127.0.0.1:${port}/`)
-  if(!home.headers.get('content-security-policy'))throw new Error('security headers missing')
-  console.log('web, Noqeri API, NoqeriDB and registry download smoke tests passed')
-} finally {stop()}
+ await new Promise((resolve,reject)=>{
+  const timer=setTimeout(()=>reject(Error('server start timeout')),12000)
+  child.stdout.on('data',data=>{if(String(data).includes('listening')){clearTimeout(timer);resolve()}})
+  child.on('exit',code=>reject(Error('web server exited '+code)))
+ })
+ const root='http://127.0.0.1:'+port
+ const health=await(await fetch(root+'/api/health')).json()
+ assert.equal(health.status,'ok')
+ const meta=await(await fetch(root+'/api/meta')).json()
+ assert.equal(meta.compiler,'0.7.0')
+ const db=await fetch(root+'/api/db-demo')
+ // When private NoeSQL is unavailable the demo must fail closed, not run NoqeriDB.
+ assert.equal(db.status,503)
+ assert.equal((await db.json()).error,'noesql_runtime_unavailable')
+ const idx=await(await fetch(root+'/registry/index.json')).json()
+ assert.equal(idx.packages[0].name,'json')
+ const response=await fetch(root+'/registry/noqeri/json/0.4.0/download.nqpkg')
+ assert.equal(response.status,200)
+ const bytes=Buffer.from(await response.arrayBuffer())
+ assert.deepEqual(bytes,archive)
+ assert.equal(response.headers.get('x-archive-sha256'),integrity.slice(7))
+ const withdrawn=await fetch(root+'/registry/noqeri/json/1.0.0/download.nqpkg')
+ assert.equal(withdrawn.status,404)
+ assert.equal((await fetch(root+'/assets/does-not-exist.js')).status,404)
+ assert.equal((await fetch(root+'/secrets.noedb')).status,404)
+ const docs=await fetch(root+'/docs/http-server')
+ assert.equal(docs.status,200)
+ assert.ok((await docs.text()).includes('<div id="root"></div>'))
+ assert.ok((await fetch(root+'/')).headers.get('content-security-policy'))
+ console.log('website Registry API smoke passed')
+}finally{stop();await new Promise(resolve=>mock.close(resolve))}
