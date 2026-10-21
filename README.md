@@ -34,8 +34,8 @@ npm run smoke
 To try generating **restricted browser ES modules** locally (requires a verified Stage-2 compiler; backend support is not production-ready):
 
 ```sh
-noqeri web backend/api.nqr backend/api.generated.mjs
-noqeri web src/noqeri/client.nqr src/noqeri/client.generated.mjs
+noqeri web backend/api.noqeri backend/api.generated.mjs
+noqeri web src/noqeri/client.noqeri src/noqeri/client.generated.mjs
 ```
 
 Automatic GitHub Actions CI is intentionally disabled/removed so repository pushes do not consume Actions minutes. Build and smoke-test locally before pushing.
