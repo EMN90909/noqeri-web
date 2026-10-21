@@ -32,7 +32,9 @@ try{
  const health=await(await fetch(root+'/api/health')).json()
  assert.equal(health.status,'ok')
  const meta=await(await fetch(root+'/api/meta')).json()
- assert.equal(meta.compiler,'0.7.0')
+ assert.equal(meta.compiler,'1.0.0')
+ assert.equal(meta.qualified,false)
+ assert.equal(health.transport,'node-compatibility')
  const db=await fetch(root+'/api/db-demo')
  // When private NoeSQL is unavailable the demo must fail closed, not run NoqeriDB.
  assert.equal(db.status,503)
