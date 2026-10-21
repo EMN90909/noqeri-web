@@ -14,7 +14,7 @@ const dataRoot=join(base,'data')
 const port=Number(process.env.PORT||8080)
 const noqeriBin=process.env.NOQERI_BIN||'/usr/local/bin/noqeri'
 const cache=new Map()
-const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.nqo':'text/javascript; charset=utf-8','.noqeri':'text/plain; charset=utf-8','.nqri':'application/octet-stream','.nqon':'application/vnd.noqeri.object-notation+text','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.ico':'image/x-icon','.txt':'text/plain; charset=utf-8'}
+const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.nqo':'application/octet-stream','.noqeri':'text/plain; charset=utf-8','.nqri':'application/octet-stream','.nqon':'application/vnd.noqeri.object-notation+text','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.ico':'image/x-icon','.txt':'text/plain; charset=utf-8'}
 const security={
   'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin',
   'Permissions-Policy':'camera=(), microphone=(), geolocation=()',
