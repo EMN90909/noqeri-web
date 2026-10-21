@@ -1,0 +1,27 @@
+name: Web source and compatibility checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Verify migrated browser/API transport source syntax
+        run: |
+          node --check server.mjs
+          node --check backend/api.generated.mjs
+          node --check src/noqeri/client.generated.mjs
+          node --check runtime/registry-api-download.mjs
+          node --check runtime/noesql-demo.mjs
+      - run: npm run test:packages
+      - run: npm run build
